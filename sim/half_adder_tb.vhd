@@ -24,10 +24,10 @@ architecture behavior of half_adder_tb is
 		y: std_logic;
 		cout: std_logic; 
 		sum: std_logic) is
-		variable x_str : string := to_string(x);
-		variable y_str : string := to_string(y);
-		variable cout_str : string := to_string(cout);
-		variable sum_str : string := to_string(sum);
+		variable x_str : string(0 to 0) := to_string(x);
+		variable y_str : string(0 to 0) := to_string(y);
+		variable cout_str : string(0 to 0) := to_string(cout);
+		variable sum_str : string(0 to 0) := to_string(sum);
 	begin
 		print(x_str&" + "&y_str&" = "&cout_str&sum_str);
 	end procedure adder_result;

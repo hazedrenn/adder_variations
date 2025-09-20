@@ -1,2 +1,4 @@
 scripts/ 
 build/
+sim/adder_tb.vhd
+src/adder.vhd
