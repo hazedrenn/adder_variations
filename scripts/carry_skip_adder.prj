@@ -1,0 +1,2 @@
+vhdl2008 xil_defaultlib "../src/carry_skip_adder.vhd"
+vhdl2008 xil_defaultlib "../sim/carry_skip_adder_tb.vhd"

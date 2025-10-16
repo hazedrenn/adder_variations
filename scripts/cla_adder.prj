@@ -1,0 +1,2 @@
+vhdl2008 xil_defaultlib "../src/cla_adder.vhd"
+vhdl2008 xil_defaultlib "../sim/cla_adder_tb.vhd"

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+prj_file="${1}.prj"
+tb_module="${1}_tb"
+tcl_file="${tb_module}.tcl"
+snapshot="${tb_module}_behav"
+lib="xil_defaultlib"
+
+xvhdl --incr --relax -prj $prj_file
+xelab --incr -debug typical --relax --mt 8 -L $lib -L secureip --snapshot $snapshot $lib.$tb_module
+xsim $snapshot --R
+
+rm *.pb
+rm *.jou
+rm *.log
+rm -rf xsim.dir

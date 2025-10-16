@@ -1,0 +1,3 @@
+vhdl2008 work "../sim/my_package.vhd"
+vhdl2008 xil_defaultlib "../src/half_adder.vhd"
+vhdl2008 xil_defaultlib "../sim/half_adder_tb.vhd"
