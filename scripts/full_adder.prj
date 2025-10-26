@@ -1,3 +1,0 @@
-vhdl2008 xil_defaultlib "../sim/my_package.vhd"
-vhdl2008 xil_defaultlib "../src/full_adder.vhd"
-vhdl2008 xil_defaultlib "../sim/full_adder_tb.vhd"

@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity cla_adder is
+entity carry_look_ahead_adder is
 	port (
 		a: in std_logic_vector(3 downto 0);
 		b: in std_logic_vector(3 downto 0);
@@ -10,9 +10,9 @@ entity cla_adder is
 		cout: out std_logic;
 		sum: out std_logic_vector(3 downto 0)
 	);
-end entity cla_adder;
+end entity carry_look_ahead_adder;
 
-architecture rtl of cla_adder is
+architecture rtl of carry_look_ahead_adder is
   signal g: std_logic_vector(3 downto 0);
   signal p: std_logic_vector(3 downto 0);
   signal c: std_logic_vector(4 downto 0);

@@ -19,21 +19,6 @@ architecture behavior of full_adder_tb is
     sum: out std_logic);
   end component full_adder;
 
-  procedure display_result(
-    x: in std_logic;
-    y: in std_logic;
-    cin: in std_logic;
-    cout: in std_logic;
-    sum: in std_logic) is
-    variable x_str:    string(1 to 1) := to_string(x);
-    variable y_str:    string(1 to 1) := to_string(y);
-    variable cin_str:  string(1 to 1) := to_string(cin);
-    variable cout_str: string(1 to 1) := to_string(cout);
-    variable sum_str:  string(1 to 1) := to_string(sum);
-  begin
-    print(x_str&" + "&y_str&" + "&cin_str&" = "&cout_str&sum_str);
-  end procedure display_result;
-
   signal signal_x: std_logic;
   signal signal_y: std_logic;
   signal signal_cin: std_logic;
@@ -49,35 +34,45 @@ begin
     cout => signal_cout,
     sum => signal_sum);
 
-  process
+  stimulus: process
+    variable expected_sum : std_logic;
+    variable expected_cout: std_logic;
   begin
-    print("*****************************");
     print("** Testing full_adder");
-    print("*****************************");
 
-    signal_x <= '0'; signal_y <= '0'; signal_cin <= '0'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '0'; signal_y <= '0'; signal_cin <= '1'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '0'; signal_y <= '1'; signal_cin <= '0'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '0'; signal_y <= '1'; signal_cin <= '1'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '0'; signal_cin <= '0'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '0'; signal_cin <= '1'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '1'; signal_cin <= '0'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '1'; signal_cin <= '1'; wait for PERIOD;
-    display_result(signal_x, signal_y, signal_cin, signal_cout, signal_sum);
     wait for PERIOD;
 
-    print("*****************************"); 
-    print("** FINISHED full_adder test");
-    print("*****************************");
+    for x in std_logic range '0' to '1' loop
+      for y in std_logic range '0' to '1' loop
+        for cin in std_logic range '0' to '1' loop
+          -- Load Signals
+          signal_x   <= x; 
+          signal_y   <= y; 
+          signal_cin <= cin;
 
-    report "Finished test";
+          -- Calculate Expected Sum and Carry Out Values
+          expected_sum := x xor y xor cin;
+          expected_cout := (x and y) or (x and cin) or (y and cin);
+
+          wait for PERIOD;
+
+          -- Validate Sum Value
+          assert expected_sum = signal_sum 
+            report "Wrong sum value, expected" & std_logic'image(expected_sum) & ". Actual: " & std_logic'image(signal_sum) & ". "
+            severity FAILURE;
+
+          -- Validate Carry Out Value
+          assert expected_cout = signal_cout 
+            report "Wrong carry out value, expected" & std_logic'image(expected_cout) & ". Actual: " & std_logic'image(signal_cout) & ". "
+            severity FAILURE;
+        end loop;
+      end loop;
+    end loop;
+
+    wait for PERIOD;
+
+    print("** full_adder test PASSED");
+
     finish;
   end process;
 end architecture behavior;

@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 use std.env.finish;
 use std.textio.all;
 
-entity cla_adder_tb is
-end entity cla_adder_tb;
+entity carry_look_ahead_adder_tb is
+end entity carry_look_ahead_adder_tb;
 
-architecture behavior of cla_adder_tb is
+architecture behavior of carry_look_ahead_adder_tb is
   ---------------------------
   -- PROCEDURE: print
   ---------------------------
@@ -18,16 +18,16 @@ architecture behavior of cla_adder_tb is
     writeline(output, l);
   end procedure print;
   ---------------------------
-  -- COMPONENT: cla_adder
+  -- COMPONENT: carry_look_ahead_adder
   ---------------------------
-  component cla_adder is
+  component carry_look_ahead_adder is
 	port (
 		a: in std_logic_vector(3 downto 0);
 		b: in std_logic_vector(3 downto 0);
 		cin: in std_logic;
 		cout: out std_logic;
 		sum: out std_logic_vector(3 downto 0));
-  end component cla_adder;
+  end component carry_look_ahead_adder;
   --------------------------
   -- SIGNALS
   --------------------------
@@ -42,9 +42,9 @@ architecture behavior of cla_adder_tb is
   constant PERIOD: time := 1 ns;
 begin
   -----------------------------
-  -- COMPONENT INSTANCE: cla_adder1
+  -- COMPONENT INSTANCE: carry_look_ahead_adder1
   -----------------------------
-  cla_adder1: component cla_adder
+  carry_look_ahead_adder1: component carry_look_ahead_adder
   port map (
     a => signal_a,
     b => signal_b,
