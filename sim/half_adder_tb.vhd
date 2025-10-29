@@ -5,7 +5,7 @@ use std.env.finish;
 use std.textio.all;
 
 library work;
-use work.my_package.all;
+use work.sim_io_package.all;
 
 entity half_adder_tb is
 end entity half_adder_tb;
@@ -19,15 +19,6 @@ architecture behavior of half_adder_tb is
     sum: out std_logic);
   end component half_adder;
 
-  procedure adder_result(
-    x: std_logic;
-    y: std_logic;
-    cout: std_logic; 
-    sum: std_logic) is
-  begin
-    print(std_logic'image(x)&" + "& std_logic'image(y)&" = "&std_logic'image(cout)&std_logic'image(sum));
-  end procedure adder_result;
-  
   signal signal_x: std_logic;
   signal signal_y: std_logic;
   signal signal_cout: std_logic;
@@ -47,17 +38,25 @@ begin
     print("** Testing half_adder...");
 
     wait for PERIOD;
-    signal_x <= '0'; signal_y <= '0'; wait for PERIOD;
-    adder_result(signal_x, signal_y, signal_cout, signal_sum);
-    assert signal_cout = '0' and signal_sum = '0' 
-      report "sum is "&std_logic'image(signal_cout)&std_logic'image(signal_sum)&"should be 00" 
-      severity FAILURE;
-    signal_x <= '0'; signal_y <= '1'; wait for PERIOD;
-    adder_result(signal_x, signal_y, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '0'; wait for PERIOD;
-    adder_result(signal_x, signal_y, signal_cout, signal_sum);
-    signal_x <= '1'; signal_y <= '1'; wait for PERIOD;
-    adder_result(signal_x, signal_y, signal_cout, signal_sum);
+
+    for ii in std_logic range '0' to '1' loop
+      for jj in std_logic range '0' to '1' loop
+        signal_x <= ii;
+        signal_y <= jj;
+
+        wait for PERIOD;
+
+        print(std_logic'image(signal_x) & std_logic'image(signal_y));
+        assert signal_cout = (ii and jj)
+          report "Error: Carry Out is "& std_logic'image(signal_cout) &". Expected "& std_logic'image(ii and jj) &"."
+          severity FAILURE;
+
+        assert signal_sum = (ii xor jj)
+          report "Error: Sum is "& std_logic'image(signal_sum) &". Expected "& std_logic'image(ii xor jj) &"."
+          severity FAILURE;
+      end loop;
+    end loop;
+      
     wait for PERIOD;
 
     print("** FINISHED half_adder test...");

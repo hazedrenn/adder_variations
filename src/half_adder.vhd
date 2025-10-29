@@ -14,5 +14,5 @@ end half_adder;
 architecture rtl of half_adder is
 begin
 	cout <= x and y;
-	sum <= x or y;
+	sum <= x xor y;
 end rtl;

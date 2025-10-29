@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 use std.env.finish;
 
 library work;
-use work.my_package.all;
+use work.sim_io_package.all;
 
 entity full_adder_tb is
 end entity full_adder_tb;
