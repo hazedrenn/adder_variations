@@ -11,10 +11,6 @@ for {set i 0} {$i < $nfacs} {incr i} {
   lappend faclist $facname
 }
 
-foreach fac $faclist {
-  puts $fac
-}
-
 # faclist format: 
 #  top.module_tb.module.signal_a[0]
 #  top.module_tb.module.signal_a[1]
@@ -48,7 +44,6 @@ foreach signal $faclist {
     # Append new name to name_list
     lappend signal_write_list $prev_name
     lappend signal_read_list "$prev_name$range"
-    puts "write: $prev_name read: $prev_name$range numbers: $num_list"
     
     # Update prev_name
     set prev_name $name
@@ -67,7 +62,6 @@ if {[llength $num_list] > 1} {
 
 lappend signal_write_list $prev_name
 lappend signal_read_list "$prev_name$range"
-puts "write: $prev_name read: $prev_name$range"
 
 # writelist format: 
 #  top.module_tb.module.signal_a
@@ -93,15 +87,7 @@ foreach signal $signal_read_list {
 
 # Group signals by their entity name
 dict for {entity signal_list} $entity_dict {
-  puts $entity
-  puts "putsputs"
-  foreach signal $signal_list {
-    puts "\t$signal"
-  }
   gtkwave::highlightSignalsFromList $signal_list
-  if {$entity == "full_adder_tb"} {
-    break
-  }
   gtkwave::/Edit/Create_Group       $entity
   gtkwave::unhighlightSignalsFromList $signal_list
   break

@@ -1,3 +1,6 @@
+-------------------------------------------------------------------------------
+-- full_adder_tb
+-------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -6,27 +9,34 @@ use std.env.finish;
 library work;
 use work.sim_io_package.all;
 
+-------------------------------------------------------------------------------
+-- entity
+-------------------------------------------------------------------------------
 entity full_adder_tb is
 end entity full_adder_tb;
 
+-------------------------------------------------------------------------------
+-- architecture
+-------------------------------------------------------------------------------
 architecture behavior of full_adder_tb is
-  component full_adder is
-  port (
-    x: in std_logic;
-    y: in std_logic;
-    cin: in std_logic;
-    cout: out std_logic;
-    sum: out std_logic);
-  end component full_adder;
-
-  signal signal_x: std_logic;
-  signal signal_y: std_logic;
-  signal signal_cin: std_logic;
-  signal signal_cout: std_logic;
-  signal signal_sum: std_logic;
+  -------------------------------------------------------------------------------
+  -- constants
+  -------------------------------------------------------------------------------
   constant PERIOD: time := 1 ns;
+
+  -------------------------------------------------------------------------------
+  -- signals
+  -------------------------------------------------------------------------------
+  signal signal_x   : std_logic;
+  signal signal_y   : std_logic;
+  signal signal_cin : std_logic;
+  signal signal_cout: std_logic;
+  signal signal_sum : std_logic;
 begin
-  full_adder1: component full_adder
+  -------------------------------------------------------------------------------
+  -- dut
+  -------------------------------------------------------------------------------
+  dut: entity work.full_adder
   port map (
     x => signal_x,
     y => signal_y,
@@ -34,6 +44,9 @@ begin
     cout => signal_cout,
     sum => signal_sum);
 
+  -------------------------------------------------------------------------------
+  -- stimulus
+  -------------------------------------------------------------------------------
   stimulus: process
     variable expected_sum : std_logic;
     variable expected_cout: std_logic;
@@ -42,10 +55,10 @@ begin
 
     wait for PERIOD;
 
+    -- Validate all input combinations
     for x in std_logic range '0' to '1' loop
       for y in std_logic range '0' to '1' loop
         for cin in std_logic range '0' to '1' loop
-          -- Load Signals
           signal_x   <= x; 
           signal_y   <= y; 
           signal_cin <= cin;
@@ -56,12 +69,11 @@ begin
 
           wait for PERIOD;
 
-          -- Validate Sum Value
+          -- Validate sum and cout
           assert expected_sum = signal_sum 
             report "Wrong sum value, expected" & std_logic'image(expected_sum) & ". Actual: " & std_logic'image(signal_sum) & ". "
             severity FAILURE;
 
-          -- Validate Carry Out Value
           assert expected_cout = signal_cout 
             report "Wrong carry out value, expected" & std_logic'image(expected_cout) & ". Actual: " & std_logic'image(signal_cout) & ". "
             severity FAILURE;
@@ -69,10 +81,8 @@ begin
       end loop;
     end loop;
 
-    wait for PERIOD;
-
     print("** full_adder test PASSED");
-
+    wait for PERIOD;
     finish;
   end process;
 end architecture behavior;

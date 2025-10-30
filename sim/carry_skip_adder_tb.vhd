@@ -1,75 +1,98 @@
+-------------------------------------------------------------------------------
+-- carry_skip_adder_tb
+-------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.env.finish;
 use std.textio.all;
 
+library work;
+use work.sim_io_package.all;
+
+-------------------------------------------------------------------------------
+-- entity
+-------------------------------------------------------------------------------
 entity carry_skip_adder_tb is
 end entity carry_skip_adder_tb;
 
+-------------------------------------------------------------------------------
+-- architecture
+-------------------------------------------------------------------------------
 architecture behavior of carry_skip_adder_tb is
-  ---------------------------
-  -- PROCEDURE: print
-  ---------------------------
-  procedure print(s: string) is
-    variable l: line;
-  begin
-    write(l, s);
-    writeline(output, l);
-  end procedure print;
-  ---------------------------
-  -- COMPONENT: carry_skip_adder
-  ---------------------------
-  component carry_skip_adder is
-	port (
-		a: in std_logic_vector(3 downto 0);
-		b: in std_logic_vector(3 downto 0);
-		cin: in std_logic;
-		cout: out std_logic;
-		sum: out std_logic_vector(3 downto 0));
-  end component carry_skip_adder;
-  --------------------------
-  -- SIGNALS
-  --------------------------
+  -------------------------------------------------------------------------------
+  -- constants
+  -------------------------------------------------------------------------------
+  constant PERIOD: time := 1 ns;
+
+  -------------------------------------------------------------------------------
+  -- signals
+  -------------------------------------------------------------------------------
 	signal signal_a: std_logic_vector(3 downto 0);
 	signal signal_b: std_logic_vector(3 downto 0);
 	signal signal_cin: std_logic;
 	signal signal_cout: std_logic;
 	signal signal_sum: std_logic_vector(3 downto 0);
-  --------------------------
-  -- CONSTANTS
-  --------------------------
-  constant PERIOD: time := 1 ns;
 begin
-  -----------------------------
-  -- COMPONENT INSTANCE: carry_skip_adder1
-  -----------------------------
-  carry_skip_adder1: component carry_skip_adder
+  -------------------------------------------------------------------------------
+  -- dut
+  -------------------------------------------------------------------------------
+  dut: entity work.carry_skip_adder
   port map (
     a => signal_a,
     b => signal_b,
     cin => signal_cin,
     cout => signal_cout,
     sum => signal_sum);
-  -----------------------------
-  -- PROCESS: main
-  -- main contains all the signal assignments for 
-  -- the testbench. The results are printed out to
-  -- for text-based confirmation.
-  -----------------------------
-  main: process
+
+  -------------------------------------------------------------------------------
+  -- stimulus
+  -------------------------------------------------------------------------------
+  stimulus: process
+    variable a    : std_logic_vector(3 downto 0);
+    variable b    : std_logic_vector(3 downto 0);
+    variable cout : std_logic;
+    variable cin  : std_logic;
+    variable sum  : std_logic_vector(3 downto 0);
   begin
-    print(LF&"Begin Test...");
-    signal_a <= b"0000"; signal_b <= b"1111"; signal_cin <= '0';  wait for PERIOD;
-    print(to_string(signal_a)&" + "&to_string(signal_b)&" = "&to_string(signal_cout)&" "&to_string(signal_sum));
-    signal_a <= b"0010"; signal_b <= b"1001"; signal_cin <= '0'; wait for PERIOD;
-    print(to_string(signal_a)&" + "&to_string(signal_b)&" = "&to_string(signal_cout)&" "&to_string(signal_sum));
-    signal_a <= b"0110"; signal_b <= b"0101"; signal_cin <= '0'; wait for PERIOD;
-    print(to_string(signal_a)&" + "&to_string(signal_b)&" = "&to_string(signal_cout)&" "&to_string(signal_sum));
-    signal_a <= b"1001"; signal_b <= b"1101"; signal_cin <= '0'; wait for PERIOD;
-    print(to_string(signal_a)&" + "&to_string(signal_b)&" = "&to_string(signal_cout)&" "&to_string(signal_sum));
+    print("** Begin Test...");
+
     wait for PERIOD;
-    report "Finished test";
+
+    -- Test every input combination for a, b and cin
+    for ii in 0 to signal_a'length**2-1 loop
+      for jj in 0 to signal_b'length**2-1 loop
+        for kk in std_logic range '0' to '1' loop
+          a   := std_logic_vector(to_unsigned(ii, a'length));
+          b   := std_logic_vector(to_unsigned(jj, b'length));
+          cin := kk;
+
+          signal_a   <= a;
+          signal_b   <= b;
+          signal_cin <= cin;
+
+          wait for PERIOD;
+
+          -- Generate expected sum and cout
+          for n in 0 to sum'length-1 loop
+            sum(n) := a(n) xor b(n) xor cin;
+            cout   := (a(n) and b(n)) or (a(n) and cin) or (b(n) and cin);
+            cin    := cout;
+          end loop;
+
+          -- Verify adder results
+          assert signal_sum = sum
+            report "Error: Incorrect sum. Actual: "& to_string(signal_sum) &". Expected: "& to_string(sum) &"."
+            severity FAILURE;
+          assert signal_cout = cout
+            report "Error: Incorrect carry out. Actual: "& to_string(signal_cout) &". Expected: "& to_string(cout) &"."
+            severity FAILURE;
+        end loop;
+      end loop;
+    end loop;
+
+    print("** Finished Test...");
+    wait for PERIOD;
     finish;
   end process;
 end architecture behavior;
