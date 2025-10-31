@@ -1,7 +1,13 @@
+-------------------------------------------------------------------------------
+-- carry_look_ahead_adder
+-------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-------------------------------------------------------------------------------
+-- entity
+-------------------------------------------------------------------------------
 entity carry_look_ahead_adder is
 	port (
 		a: in std_logic_vector(3 downto 0);
@@ -12,7 +18,13 @@ entity carry_look_ahead_adder is
 	);
 end entity carry_look_ahead_adder;
 
+-------------------------------------------------------------------------------
+-- architecture
+-------------------------------------------------------------------------------
 architecture rtl of carry_look_ahead_adder is
+  -------------------------------------------------------------------------------
+  -- signals
+  -------------------------------------------------------------------------------
   signal g: std_logic_vector(3 downto 0);
   signal p: std_logic_vector(3 downto 0);
   signal c: std_logic_vector(4 downto 0);
@@ -20,12 +32,13 @@ begin
   p <= a xor b; --propagate
   g <= a and b; --generate
 
-  --carry generator
+  -------------------------------------------------------------------------------
+  -- carry generator
+  -------------------------------------------------------------------------------
   c(0) <= cin;
-  c(1) <= g(0) or (c(0) and p(0));
-  c(2) <= g(1) or (g(0) and p(1)) or (c(0) and p(0) and p(1));
-  c(3) <= g(2) or (g(1) and p(2)) or (g(0) and p(1) and p(2)) or (c(0) and p(0) and p(1) and p(2));
-  c(4) <= g(3) or (g(2) and p(3)) or (g(1) and p(2) and p(3)) or (g(0) and p(1) and p(2) and p(3)) or (c(0) and p(0) and p(1) and p(2) and p(3));
+  carry_gen: for i in 0 to c'length-2 generate
+    c(i+1) <= g(i) or ( c(i) and p(i) );
+  end generate carry_gen;
   cout <= c(4);
 
 	sum <= p xor c(3 downto 0);

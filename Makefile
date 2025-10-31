@@ -21,9 +21,7 @@ carry_look_ahead_adder_SOURCES:=src/carry_look_ahead_adder.vhd
 
 # Individual simulation runs of each module
 $(MODULES): $(GHDL_SCRIPT)
-	$(foreach file, \
-		$(PACKAGES) $(@_SOURCES) sim/$@_tb.vhd, \
-		ghdl -a --std=08 $(file) $(newline))
+	$(foreach file, $(PACKAGES) $($@_SOURCES) sim/$@_tb.vhd, ghdl -a --std=08 $(file) $(newline))
 	ghdl -e --std=08 $@_tb
 	ghdl -r --std=08 $@_tb --wave=wave/$@_tb.ghw
 	gtkwave wave/$@_tb.ghw --script=$(GHDL_SCRIPT)

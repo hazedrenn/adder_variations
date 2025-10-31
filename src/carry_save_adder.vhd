@@ -15,13 +15,12 @@
 -- to get the full result. This can be done using a Ripple Carry Adder or
 -- another equivalent architecture.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 ------------------------------------------------------------------------------
--- Entity
+-- entity
 -------------------------------------------------------------------------------
 entity carry_save_adder is
   generic(
@@ -35,28 +34,16 @@ entity carry_save_adder is
 	     );
 end entity carry_save_adder;
 
-
 ------------------------------------------------------------------------------
--- Architecture
+-- architecture
 -------------------------------------------------------------------------------
 architecture rtl of carry_save_adder is
-  ------------------------------------------------------------------------------
-  -- Component full_adder
-  -------------------------------------------------------------------------------
-  component full_adder is
-    port(
-      x   : in std_logic;
-      y   : in std_logic;
-      cin : in std_logic;
-      cout: out std_logic;
-      sum : out std_logic);
-  end component;
 begin
   ------------------------------------------------------------------------------
   -- Full Adder Generator
   -------------------------------------------------------------------------------
   fa_generate: for ii in 0 to N-1 generate
-    fa: full_adder port map (
+    fa: entity work.full_adder port map (
       x => x(ii),
       y => y(ii),
       cin => cin(ii),
