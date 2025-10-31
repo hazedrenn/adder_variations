@@ -10,14 +10,15 @@ readme: README.md
 	pandoc --from gfm --to html README.md > README.html
 	firefox README.html
 
-MODULES												:=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder
+MODULES												:=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder
 GHDL_SCRIPT										:=scripts/signals.tcl
 PACKAGES											:=sim/sim_io_package.vhd
 full_adder_SOURCES						:=src/full_adder.vhd
 half_adder_SOURCES						:=src/half_adder.vhd
-carry_skip_adder_SOURCES			:=src/half_adder.vhd
-carry_save_adder_SOURCES			:=src/half_adder.vhd src/full_adder.vhd
+carry_skip_adder_SOURCES			:=src/full_adder.vhd src/carry_skip_adder.vhd
+carry_save_adder_SOURCES			:=src/full_adder.vhd src/carry_save_adder.vhd
 carry_look_ahead_adder_SOURCES:=src/carry_look_ahead_adder.vhd
+n_bit_full_adder_SOURCES			:=src/full_adder.vhd src/n_bit_full_adder.vhd
 
 # Individual simulation runs of each module
 $(MODULES): $(GHDL_SCRIPT)

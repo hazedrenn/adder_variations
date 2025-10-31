@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- carry_skip_adder
+-- n_bit_full_adder
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -8,46 +8,34 @@ use ieee.numeric_std.all;
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
-entity carry_skip_adder is
+entity n_bit_full_adder is
+  generic(
+    SIZE : positive := 4);
 	port (
-		a: in std_logic_vector(3 downto 0);
-		b: in std_logic_vector(3 downto 0);
-		cin: in std_logic;
+		x   : in std_logic_vector(SIZE-1 downto 0);
+		y   : in std_logic_vector(SIZE-1 downto 0);
+		cin : in std_logic;
 		cout: out std_logic;
-		sum: out std_logic_vector(3 downto 0)
-	);
-end entity carry_skip_adder;
+		sum : out std_logic_vector(SIZE-1 downto 0));
+end entity n_bit_full_adder;
 
 -------------------------------------------------------------------------------
 -- architecture
 -------------------------------------------------------------------------------
-architecture rtl of carry_skip_adder is
-  -------------------------------------------------------------------------------
-  -- signals
-  -------------------------------------------------------------------------------
-  signal p: std_logic_vector(3 downto 0);
-  signal c: std_logic_vector(4 downto 0);
+architecture rtl of n_bit_full_adder is
+  signal c : std_logic_vector(SIZE downto 0);
 begin
-  p <= a xor b; --propagate
-
   -------------------------------------------------------------------------------
-  -- carry generator
+  -- full adder generator
   -------------------------------------------------------------------------------
   c(0) <= cin;
-
-  fa_generate: for i in 0 to 3 generate
+  fa_generate: for n in 0 to SIZE-1 generate
     fa: entity work.full_adder port map (
-		x   => a(i), 
-		y   => b(i),
-		cin => c(i),
-		cout=> c(i+1),
-		sum => sum(i));
-  end generate;
-
-  cout <= c(4) when (and p) = '0' else c(0); 
-
-	sum <= p xor c(3 downto 0);
-end rtl;
-
-
-
+      x => x(n),
+      y => y(n),
+      cin => c(n),
+      cout => c(n+1),
+      sum => sum(n));
+  end generate fa_generate;
+  cout <= c(SIZE);
+end architecture rtl;
