@@ -9,13 +9,13 @@ use ieee.numeric_std.all;
 -- entity
 -------------------------------------------------------------------------------
 entity carry_look_ahead_adder is
-	port (
-		a: in std_logic_vector(3 downto 0);
-		b: in std_logic_vector(3 downto 0);
-		cin: in std_logic;
-		cout: out std_logic;
-		sum: out std_logic_vector(3 downto 0)
-	);
+  port (
+    a: in std_logic_vector(3 downto 0);
+    b: in std_logic_vector(3 downto 0);
+    cin: in std_logic;
+    cout: out std_logic;
+    sum: out std_logic_vector(3 downto 0)
+  );
 end entity carry_look_ahead_adder;
 
 -------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ begin
   end generate carry_gen;
   cout <= c(4);
 
-	sum <= p xor c(3 downto 0);
+  sum <= p xor c(3 downto 0);
 end rtl;
 
 

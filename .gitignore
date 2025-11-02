@@ -2,3 +2,6 @@ wave/
 *.cf
 images/
 *.html
+*sublime-project
+*sublime-workspace
+xvhdl*

@@ -9,11 +9,11 @@ use ieee.numeric_std.all;
 -- entity
 -------------------------------------------------------------------------------
 entity half_adder is
-	port(
-		x   : in std_logic;
-		y   : in std_logic;
-		cout: out std_logic;
-		sum : out std_logic);
+  port(
+    x   : in std_logic;
+    y   : in std_logic;
+    cout: out std_logic;
+    sum : out std_logic);
 end half_adder;
 
 -------------------------------------------------------------------------------
@@ -21,6 +21,6 @@ end half_adder;
 -------------------------------------------------------------------------------
 architecture rtl of half_adder is
 begin
-	cout <= x and y;
-	sum <= x xor y;
+  cout <= x and y;
+  sum  <= x xor y;
 end rtl;

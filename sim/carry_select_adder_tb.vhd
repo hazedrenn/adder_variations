@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
--- carry_look_ahead_addert_tb.vhd
+-- carry_select_adder_tb
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.env.finish;
-use std.textio.all;
 
 library work;
 use work.sim_io_package.all;
 
 -------------------------------------------------------------------------------
--- Entity
+-- entity
 -------------------------------------------------------------------------------
-entity carry_look_ahead_adder_tb is
-end entity carry_look_ahead_adder_tb;
+entity carry_select_adder_tb is
+  generic( 
+    SIZE: positive :=4 );
+end entity carry_select_adder_tb;
 
 -------------------------------------------------------------------------------
--- Architecture
+-- architecture
 -------------------------------------------------------------------------------
-architecture behavior of carry_look_ahead_adder_tb is
+architecture behavior of carry_select_adder_tb is
   -------------------------------------------------------------------------------
   -- constants
   -------------------------------------------------------------------------------
@@ -28,70 +29,72 @@ architecture behavior of carry_look_ahead_adder_tb is
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
-  signal signal_a   : std_logic_vector(3 downto 0);
-  signal signal_b   : std_logic_vector(3 downto 0);
+  signal signal_x   : std_logic_vector(SIZE-1 downto 0);
+  signal signal_y   : std_logic_vector(SIZE-1 downto 0);
   signal signal_cin : std_logic;
   signal signal_cout: std_logic;
-  signal signal_sum : std_logic_vector(3 downto 0);
+  signal signal_sum : std_logic_vector(SIZE-1 downto 0);
 begin
   -------------------------------------------------------------------------------
   -- dut
   -------------------------------------------------------------------------------
-  dut: entity work.carry_look_ahead_adder
+  dut: entity work.carry_select_adder
+  generic map(
+    SIZE     => SIZE)
   port map (
-    a => signal_a,
-    b => signal_b,
-    cin => signal_cin,
-    cout => signal_cout,
-    sum => signal_sum);
+    x     => signal_x,
+    y     => signal_y,
+    cin   => signal_cin,
+    cout  => signal_cout,
+    sum   => signal_sum);
 
   -------------------------------------------------------------------------------
   -- stimulus
   -------------------------------------------------------------------------------
   stimulus: process
-    variable a    : std_logic_vector(3 downto 0);
-    variable b    : std_logic_vector(3 downto 0);
-    variable cin  : std_logic_vector(4 downto 0);
-    variable sum  : std_logic_vector(3 downto 0);
-    variable cout : std_logic;
+    variable x   : std_logic_vector(SIZE-1 downto 0);
+    variable y   : std_logic_vector(SIZE-1 downto 0);
+    variable cin : std_logic_vector(SIZE   downto 0);
+    variable sum : std_logic_vector(SIZE-1 downto 0);
+    variable cout: std_logic;
   begin
-    print("** Begin Test...");
+    print("** Testing carry_select_adder");
 
-    wait for PERIOD;
-
-    for ii in 0 to signal_a'length**2-1 loop
-      for jj in 0 to signal_b'length**2-1 loop
+    -- Validate all possible input combinations
+    for ii in 0 to SIZE**2-1 loop
+      for jj in 0 to SIZE**2-1 loop
         for kk in 0 to 1 loop
-          a   := std_logic_vector(to_unsigned(ii, a'length));
-          b   := std_logic_vector(to_unsigned(jj, b'length));
+          x   := std_logic_vector(to_unsigned(ii, x'length));
+          y   := std_logic_vector(to_unsigned(jj, y'length));
           cin := std_logic_vector(to_unsigned(kk, cin'length));
 
-          signal_a   <= a;
-          signal_b   <= b;
+          signal_x   <= x;
+          signal_y   <= y;
           signal_cin <= cin(0);
 
           wait for PERIOD;
-          
-          for n in 0 to 3 loop
-            sum(n)   := a(n) xor b(n) xor cin(n);
-            cin(n+1) := (a(n) and b(n)) or (a(n) and cin(n)) or (b(n) and cin(n)); 
+
+          -- Generate expected sum and cout
+          for n in 0 to SIZE-1 loop
+            sum(n)   := x(n) xor y(n) xor cin(n);
+            cin(n+1) := (x(n) and y(n)) or (x(n) and cin(n)) or (y(n) and cin(n));
+            cout     := cin(n+1);
           end loop;
 
-          cout := cin(4);
-
-          assert signal_sum = sum
-            report "Error: Incorrect sum. Actual: "& to_string(signal_sum) &". Expected: "& to_string(sum) &"."
+          -- Verify sum and cout
+          assert signal_sum  = sum
+            report "Error: Incorrect sum. Actual "& to_string(signal_sum) &". Expected "& to_string(sum)
             severity FAILURE;
 
           assert signal_cout = cout
-            report "Error: Incorrect carry out. Actual: "& to_string(signal_cout) &". Expected: "& to_string(cout) &"."
+            report "Error: Incorrect carry out. Actual "& to_string(signal_cout) &". Expected "& to_string(cout)
             severity FAILURE;
         end loop;
       end loop;
     end loop;
 
-    print("** Finished Test...");
     wait for PERIOD;
+    print("** FINISHED carry_select_adder test");
     finish;
   end process;
 end architecture behavior;

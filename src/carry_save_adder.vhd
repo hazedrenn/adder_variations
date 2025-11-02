@@ -25,13 +25,12 @@ use ieee.numeric_std.all;
 entity carry_save_adder is
   generic(
     N : positive := 4);
-	port (
-		x   : in std_logic_vector(N-1 downto 0);
-		y   : in std_logic_vector(N-1 downto 0);
-		cin : in std_logic_vector(N-1 downto 0);
-		cout: out std_logic_vector(N-1 downto 0);
-		sum : out std_logic_vector(N-1 downto 0)
-	     );
+  port (
+    x   : in std_logic_vector(N-1 downto 0);
+    y   : in std_logic_vector(N-1 downto 0);
+    cin : in std_logic_vector(N-1 downto 0);
+    cout: out std_logic_vector(N-1 downto 0);
+    sum : out std_logic_vector(N-1 downto 0));
 end entity carry_save_adder;
 
 ------------------------------------------------------------------------------

@@ -28,11 +28,11 @@ architecture behavior of carry_skip_adder_tb is
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
-	signal signal_a: std_logic_vector(3 downto 0);
-	signal signal_b: std_logic_vector(3 downto 0);
-	signal signal_cin: std_logic;
-	signal signal_cout: std_logic;
-	signal signal_sum: std_logic_vector(3 downto 0);
+  signal signal_a: std_logic_vector(3 downto 0);
+  signal signal_b: std_logic_vector(3 downto 0);
+  signal signal_cin: std_logic;
+  signal signal_cout: std_logic;
+  signal signal_sum: std_logic_vector(3 downto 0);
 begin
   -------------------------------------------------------------------------------
   -- dut
