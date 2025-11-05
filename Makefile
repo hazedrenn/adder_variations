@@ -10,17 +10,19 @@ readme: README.md
 	pandoc --from gfm --to html README.md > README.html
 	firefox README.html
 
-MODULES												:=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder carry_select_adder csa_tree
-GHDL_SCRIPT										:=scripts/signals.tcl
-PACKAGES											:=sim/sim_io_package.vhd src/general_package.vhd
-full_adder_SOURCES						:=src/full_adder.vhd
-half_adder_SOURCES						:=src/half_adder.vhd
-carry_skip_adder_SOURCES			:=src/full_adder.vhd src/carry_skip_adder.vhd
-carry_save_adder_SOURCES			:=src/full_adder.vhd src/carry_save_adder.vhd
-carry_look_ahead_adder_SOURCES:=src/carry_look_ahead_adder.vhd
-n_bit_full_adder_SOURCES			:=src/full_adder.vhd src/n_bit_full_adder.vhd
-carry_select_adder_SOURCES		:=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_select_adder.vhd
-csa_tree_SOURCES							:=src/full_adder.vhd src/carry_save_adder.vhd src/csa_tree.vhd
+MODULES												 :=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder carry_select_adder csa_tree_level csa_tree slice
+GHDL_SCRIPT										 :=scripts/signals.tcl
+PACKAGES											 :=sim/sim_io_package.vhd src/general_package.vhd
+full_adder_SOURCES						 :=src/full_adder.vhd
+half_adder_SOURCES						 :=src/half_adder.vhd
+carry_skip_adder_SOURCES			 :=src/full_adder.vhd src/carry_skip_adder.vhd
+carry_save_adder_SOURCES			 :=src/full_adder.vhd src/carry_save_adder.vhd
+carry_look_ahead_adder_SOURCES :=src/carry_look_ahead_adder.vhd
+n_bit_full_adder_SOURCES			 :=src/full_adder.vhd src/n_bit_full_adder.vhd
+carry_select_adder_SOURCES		 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_select_adder.vhd
+csa_tree_level_SOURCES			   :=src/full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd
+csa_tree_SOURCES			   			 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd src/slice.vhd src/csa_tree.vhd
+slice_SOURCES			   			     :=src/slice.vhd
 
 # Individual simulation runs of each module
 $(MODULES): $(GHDL_SCRIPT)

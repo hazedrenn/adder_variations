@@ -1,10 +1,13 @@
 --------------------------------------------------------------------------------
--- csa_tree
+-- csa_tree_results_results
 --
--- This module uses carry save adders to add multiple k-bit numbers at once.
--- The design combines the use of carry save adders to reduce the number of
--- inputs down to 2. Then these 2 inputs are inserted into a k-bit ripple
--- carry adder.
+-- Given a 2d vector of sums and a 2d vector of carry outs, determine the output
+-- as a 2d vector of results that imitate the results of a single level of a 
+-- csa tree result. It should act like below for the first level of 4 inputs:
+      --results(i+1)(0)(SIZE_OF_INPUTS-1 downto 0) <= sums(i)(0);
+      --results(i+1)(1)(SIZE_OF_INPUTS-1 downto 0) <= sums(i)(1);
+      --results(i+1)(2)(SIZE_OF_INPUTS   downto 0) <= carry_outs(i)(0) & '0';
+      --results(i+1)(3)(SIZE_OF_INPUTS-1 downto 0) <= (SIZE_OF_INPUTS-1 downto 0 => '0');
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -16,24 +19,26 @@ use work.general_package.all;
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
-entity csa_tree is
+entity csa_tree_results is
   generic (
-    NUM_OF_INPUTS  : positive := 3;
-    SIZE_OF_INPUTS : positive := 4);
-  port (
-    inputs  : in  slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
-    sum     : out std_logic_vector(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0);
-    cout    : out std_logic);
-end csa_tree;
+    SIZE_OF_RESULT : natural := 4;
+    SIZE_OF_INPUTS : natural := 4;
+    NUM_OF_SUMS    : natural := 2;
+    NUM_OF_COUTS   : natural := 1);
+  port map(
+    sums           : slv_vector(0 to NUM_OF_SUMS-1)(SIZE_OF_INPUTS-1 downto 0);
+    carry_outs     : slv_vector(0 to NUM_OF_COUTS-1)(SIZE_OF_INPUTS-1 downto 0);
+    results        : slv_vector(0 to ));
+end csa_tree_results;
 
 -------------------------------------------------------------------------------
 -- architecture
 -------------------------------------------------------------------------------
-architecture rtl of csa_tree is
+architecture rtl of csa_tree_results is
   -------------------------------------------------------------------------------- 
   -- constants
   -------------------------------------------------------------------------------- 
-  CONSTANT HEIGHT   : natural := csa_tree_height(NUM_OF_INPUTS);
+  CONSTANT HEIGHT   : natural := csa_tree_results_height(NUM_OF_INPUTS);
 
   -------------------------------------------------------------------------------- 
   -- signals
@@ -49,7 +54,7 @@ begin
   populate_results: process(results, inputs)
   begin
     for i in 0 to NUM_OF_INPUTS-1 loop
-      results(0)(i)(SIZE_OF_INPUTS-1 downto 0) <= inputs(i);
+      if 
     end loop;
   end process;
 
@@ -70,7 +75,7 @@ begin
         input2d => results(i),
         output2d => csa_inputs(i));
 
-    csa1: entity work.csa_tree_level 
+    csa1: entity work.csa_tree_results_level 
       generic map (
         NUM_OF_INPUTS  => NUM_OF_INPUTS, -- may have to change num_of_inputs at each iteration
         SIZE_OF_INPUTS => SIZE_OF_INPUTS)
@@ -79,16 +84,21 @@ begin
         carry_outs     => carry_outs(i),
         sums           => sums(i));
     
-    result1: entity work.csa_tree_results
-      generic map(
-        SIZE_OF_RESULT => results(i+1)'length,
-        SIZE_OF_INPUTS => SIZE_OF_INPUTS,
-        NUM_OF_SUMS    => sums(i)'length,
-        NUM_OF_COUTS   => carry_outs(i)'length)
-      port map(
-        sums           => sums(i),
-        carry_outs     => carry_outs(i),
-        results        => results(i+1));
+        generic map(
+          SIZE_OF_RESULT => results(i+1)'length,
+          SIZE_OF_INPUTS => SIZE_OF_INPUTS,
+          NUM_OF_SUMS    => sums(i)'length,
+          NUM_OF_COUTS   => carry_outs(i)'length)
+        port map(
+          sums           => sums(i),
+          carry_outs     => carry_outs(i),
+          results        => results(i+1));
+
+      --results(i+1)(0)(SIZE_OF_INPUTS-1 downto 0) <= sums(i)(0);
+      --results(i+1)(1)(SIZE_OF_INPUTS-1 downto 0) <= sums(i)(1);
+      --results(i+1)(2)(SIZE_OF_INPUTS   downto 0) <= carry_outs(i)(0) & '0';
+      --results(i+1)(3)(SIZE_OF_INPUTS-1 downto 0) <= (SIZE_OF_INPUTS-1 downto 0 => '0');
+    end generate result_populate_gen;
   end generate csa_reduce_generate;
   
   fa1: entity work.n_bit_full_adder -- find a way to add the results here. Might be able to use the last index of the 3d carry_outs and sums

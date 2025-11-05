@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- csa_tree_tb
+-- csa_tree_level_tb
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -13,16 +13,16 @@ use work.general_package.all;
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
-entity csa_tree_tb is
+entity csa_tree_level_tb is
   generic(
-    NUM_OF_INPUTS  : positive :=  4;
-    SIZE_OF_INPUTS : positive :=  4 );
-end entity csa_tree_tb;
+    NUM_OF_INPUTS  : positive :=  8;
+    SIZE_OF_INPUTS : positive :=  4);
+end entity csa_tree_level_tb;
 
 -------------------------------------------------------------------------------
 -- architecture
 -------------------------------------------------------------------------------
-architecture behavior of csa_tree_tb is
+architecture behavior of csa_tree_level_tb is
   -------------------------------------------------------------------------------
   -- constants
   -------------------------------------------------------------------------------
@@ -31,43 +31,59 @@ architecture behavior of csa_tree_tb is
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
-  signal signal_inputs  : slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
-  signal signal_sum     : std_logic_vector(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0);
-  signal signal_cout    : std_logic;
+  signal signal_inputs     : slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
+  signal signal_carry_outs : slv_vector(0 to NUM_OF_INPUTS/3 - 1)(SIZE_OF_INPUTS-1 downto 0);
+  signal signal_sums       : slv_vector(0 to NUM_OF_INPUTS/3 + (NUM_OF_INPUTS mod 3) - 1)(SIZE_OF_INPUTS-1 downto 0);
 begin
   -------------------------------------------------------------------------------
   -- dut
   -------------------------------------------------------------------------------
-  dut: entity work.csa_tree
+  dut: entity work.csa_tree_level
   generic map( 
     NUM_OF_INPUTS  => NUM_OF_INPUTS,
     SIZE_OF_INPUTS => SIZE_OF_INPUTS)
   port map (
-    inputs         => signal_inputs,
-    sum            => signal_sum,
-    cout           => signal_cout);
+    inputs         => signal_inputs, 
+    carry_outs     => signal_carry_outs,  
+    sums           => signal_sums); 
 
   -------------------------------------------------------------------------------
   -- stimulus
   -------------------------------------------------------------------------------
   stimulus: process
   begin
-    print("** Testing csa_tree");
-    for i in 0 to signal_inputs'length-1 loop
-      signal_inputs(i) <= (others => '1');
-    end loop;
+    print("** Testing csa_tree_level");
+    signal_inputs(0) <= "1111";
+    signal_inputs(1) <= "1111";
+    signal_inputs(2) <= "1111";
 
+    signal_inputs(3) <= "1111";
+    signal_inputs(4) <= "1111";
+    signal_inputs(5) <= "1111";
+
+    signal_inputs(6) <= "1101";
+    signal_inputs(7) <= "1010";
     wait for PERIOD;
     print("Height is "& integer'image(csa_tree_height(NUM_OF_INPUTS)));
+    print("modulo is "& integer'image(NUM_OF_INPUTS mod 3));
 
-    for i in 0 to signal_inputs'length-1 loop
-      print(to_string(signal_inputs(i)));
-    end loop;
+    print(" "&to_string(signal_inputs(0)));
+    print(" "&to_string(signal_inputs(1)));
+    print(" "&to_string(signal_inputs(2)));
+    print(" "&to_string(signal_inputs(3)));
+    print(" "&to_string(signal_inputs(4)));
+    print(" "&to_string(signal_inputs(5)));
+    print(" "&to_string(signal_inputs(6)));
+    print(" "&to_string(signal_inputs(7)));
+    print(" ----");
+    print(" "&to_string(signal_sums(0)));
+    print(    to_string(signal_carry_outs(0)));
+    print(" "&to_string(signal_sums(1)));
+    print(    to_string(signal_carry_outs(1)));
+    print(" "&to_string(signal_sums(2)));
+    print(" "&to_string(signal_sums(3)));
 
-    print("----");
-    print(to_string(signal_cout)&" "&to_string(signal_sum));
-
-    print("** csa_tree test PASSED");
+    print("** csa_tree_level test PASSED");
     wait for PERIOD;
     finish;
   end process;

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- csa_tree_tb
+-- slice_tb
 -------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -13,16 +13,20 @@ use work.general_package.all;
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
-entity csa_tree_tb is
+entity slice_tb is
   generic(
-    NUM_OF_INPUTS  : positive :=  4;
-    SIZE_OF_INPUTS : positive :=  4 );
-end entity csa_tree_tb;
+    INPUT_DEPTH  : natural := 3;
+    INPUT_LENGTH : natural := 4;
+    OUTPUT_MIN_DEPTH  : natural := 0;
+    OUTPUT_MAX_DEPTH  : natural := 2;
+    OUTPUT_MIN_LENGTH : natural := 0;
+    OUTPUT_MAX_LENGTH : natural := 3);
+end entity slice_tb;
 
 -------------------------------------------------------------------------------
 -- architecture
 -------------------------------------------------------------------------------
-architecture behavior of csa_tree_tb is
+architecture behavior of slice_tb is
   -------------------------------------------------------------------------------
   -- constants
   -------------------------------------------------------------------------------
@@ -31,43 +35,47 @@ architecture behavior of csa_tree_tb is
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
-  signal signal_inputs  : slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
-  signal signal_sum     : std_logic_vector(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0);
-  signal signal_cout    : std_logic;
+  signal signal_input2d  : slv_vector(0 to INPUT_DEPTH-1)(INPUT_LENGTH-1 downto 0);
+  signal signal_output2d : slv_vector(0 to OUTPUT_MAX_DEPTH-OUTPUT_MIN_DEPTH-1)(OUTPUT_MAX_LENGTH-OUTPUT_MIN_LENGTH-1 downto 0);
 begin
   -------------------------------------------------------------------------------
   -- dut
   -------------------------------------------------------------------------------
-  dut: entity work.csa_tree
-  generic map( 
-    NUM_OF_INPUTS  => NUM_OF_INPUTS,
-    SIZE_OF_INPUTS => SIZE_OF_INPUTS)
+  dut: entity work.slice
+  generic map (
+    INPUT_DEPTH   => INPUT_DEPTH   ,
+    INPUT_LENGTH  => INPUT_LENGTH  ,
+    OUTPUT_MIN_DEPTH  => OUTPUT_MIN_DEPTH  ,
+    OUTPUT_MAX_DEPTH  => OUTPUT_MAX_DEPTH  ,
+    OUTPUT_MIN_LENGTH => OUTPUT_MIN_LENGTH ,
+    OUTPUT_MAX_LENGTH => OUTPUT_MAX_LENGTH )
   port map (
-    inputs         => signal_inputs,
-    sum            => signal_sum,
-    cout           => signal_cout);
+    input2d       => signal_input2d, 
+    output2d      => signal_output2d);
 
   -------------------------------------------------------------------------------
   -- stimulus
   -------------------------------------------------------------------------------
   stimulus: process
   begin
-    print("** Testing csa_tree");
-    for i in 0 to signal_inputs'length-1 loop
-      signal_inputs(i) <= (others => '1');
+    print("** Testing slice");
+    for i in 0 to signal_input2d'length-1 loop
+      signal_input2d(i) <= std_logic_vector(to_unsigned(i, signal_input2d(i)'length));
     end loop;
 
     wait for PERIOD;
-    print("Height is "& integer'image(csa_tree_height(NUM_OF_INPUTS)));
 
-    for i in 0 to signal_inputs'length-1 loop
-      print(to_string(signal_inputs(i)));
+    for i in 0 to signal_input2d'length-1 loop
+      print(to_string(signal_input2d(i)));
     end loop;
 
-    print("----");
-    print(to_string(signal_cout)&" "&to_string(signal_sum));
+    print("---- slice ----");
+    
+    for i in 0 to signal_output2d'length-1 loop
+      print(to_string(signal_output2d(i)));
+    end loop;
 
-    print("** csa_tree test PASSED");
+    print("** slice test PASSED");
     wait for PERIOD;
     finish;
   end process;
