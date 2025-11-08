@@ -10,7 +10,7 @@ readme: README.md
 	pandoc --from gfm --to html README.md > README.html
 	firefox README.html
 
-MODULES												 :=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder carry_select_adder csa_tree_level csa_tree slice
+MODULES												 :=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder carry_select_adder csa_tree_level csa_tree slice csa_tree_results
 GHDL_SCRIPT										 :=scripts/signals.tcl
 PACKAGES											 :=sim/sim_io_package.vhd src/general_package.vhd
 full_adder_SOURCES						 :=src/full_adder.vhd
@@ -21,8 +21,9 @@ carry_look_ahead_adder_SOURCES :=src/carry_look_ahead_adder.vhd
 n_bit_full_adder_SOURCES			 :=src/full_adder.vhd src/n_bit_full_adder.vhd
 carry_select_adder_SOURCES		 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_select_adder.vhd
 csa_tree_level_SOURCES			   :=src/full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd
-csa_tree_SOURCES			   			 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd src/slice.vhd src/csa_tree.vhd
+csa_tree_SOURCES			   			 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd src/slice.vhd src/csa_tree_results.vhd src/csa_tree.vhd
 slice_SOURCES			   			     :=src/slice.vhd
+csa_tree_results_SOURCES			 :=src/csa_tree_results.vhd
 
 # Individual simulation runs of each module
 $(MODULES): $(GHDL_SCRIPT)
