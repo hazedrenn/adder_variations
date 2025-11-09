@@ -12,10 +12,10 @@ use work.general_package.all;
 
 -------------------------------------------------------------------------------
 -- entity
--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 entity csa_tree_level_tb is
   generic(
-    NUM_OF_INPUTS  : positive :=  8;
+    NUM_OF_INPUTS  : positive :=  1;
     SIZE_OF_INPUTS : positive :=  4);
 end entity csa_tree_level_tb;
 
@@ -53,35 +53,24 @@ begin
   stimulus: process
   begin
     print("** Testing csa_tree_level");
-    signal_inputs(0) <= "1111";
-    signal_inputs(1) <= "1111";
-    signal_inputs(2) <= "1111";
+    for i in 0 to signal_inputs'length-1 loop
+      signal_inputs(i) <= (others => '1');
+    end loop;
 
-    signal_inputs(3) <= "1111";
-    signal_inputs(4) <= "1111";
-    signal_inputs(5) <= "1111";
-
-    signal_inputs(6) <= "1101";
-    signal_inputs(7) <= "1010";
     wait for PERIOD;
     print("Height is "& integer'image(csa_tree_height(NUM_OF_INPUTS)));
     print("modulo is "& integer'image(NUM_OF_INPUTS mod 3));
 
-    print(" "&to_string(signal_inputs(0)));
-    print(" "&to_string(signal_inputs(1)));
-    print(" "&to_string(signal_inputs(2)));
-    print(" "&to_string(signal_inputs(3)));
-    print(" "&to_string(signal_inputs(4)));
-    print(" "&to_string(signal_inputs(5)));
-    print(" "&to_string(signal_inputs(6)));
-    print(" "&to_string(signal_inputs(7)));
+    for i in 0 to signal_inputs'length-1 loop
+      print(" "&to_string(signal_inputs(i)));
+    end loop;
     print(" ----");
-    print(" "&to_string(signal_sums(0)));
-    print(    to_string(signal_carry_outs(0)));
-    print(" "&to_string(signal_sums(1)));
-    print(    to_string(signal_carry_outs(1)));
-    print(" "&to_string(signal_sums(2)));
-    print(" "&to_string(signal_sums(3)));
+    for i in 0 to signal_sums'length-1 loop
+      print(" "&to_string(signal_sums(i)));
+    end loop;
+    for i in 0 to signal_carry_outs'length-1 loop
+      print(to_string(signal_carry_outs(i)));
+    end loop;
 
     print("** csa_tree_level test PASSED");
     wait for PERIOD;

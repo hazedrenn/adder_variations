@@ -19,18 +19,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.general_package.all;
 ------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
 entity carry_save_adder is
   generic(
-    N : positive := 4);
+    SIZE : positive := 4);
   port (
-    x   : in std_logic_vector(N-1 downto 0);
-    y   : in std_logic_vector(N-1 downto 0);
-    cin : in std_logic_vector(N-1 downto 0);
-    cout: out std_logic_vector(N-1 downto 0);
-    sum : out std_logic_vector(N-1 downto 0));
+    csa_in  : in  slv_vector(0 to 2)(SIZE-1 downto 0);
+    csa_sum : out std_logic_vector(SIZE-1 downto 0);
+    csa_cout: out std_logic_vector(SIZE-1 downto 0));
 end entity carry_save_adder;
 
 ------------------------------------------------------------------------------
@@ -41,12 +41,13 @@ begin
   ------------------------------------------------------------------------------
   -- Full Adder Generator
   -------------------------------------------------------------------------------
-  fa_generate: for ii in 0 to N-1 generate
+  fa_generate: for ii in 0 to SIZE-1 generate
     fa: entity work.full_adder port map (
-      x => x(ii),
-      y => y(ii),
-      cin => cin(ii),
-      cout => cout(ii),
-      sum => sum(ii));
+      x     => csa_in(0)(ii),
+      y     => csa_in(1)(ii),
+      cin   => csa_in(2)(ii),
+      sum   => csa_sum (ii),
+      cout  => csa_cout(ii)
+    );
   end generate fa_generate;
 end architecture rtl;

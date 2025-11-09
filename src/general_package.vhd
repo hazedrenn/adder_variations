@@ -35,6 +35,17 @@ package general_package is
     slv: std_logic_vector;
     size: natural)
     return std_logic_vector;
+
+  -- function count_trailing_zeroes
+  function count_trailing_zeroes(
+    slv: std_logic_vector)
+    return natural;
+
+  -- function max
+  function max(
+    num1: integer;
+    num2: integer)
+    return integer;
 end package general_package;
 
 package body general_package is
@@ -103,5 +114,31 @@ package body general_package is
     slv_new(slv'length-1 downto 0)              := slv;
     slv_new(slv_new'length-1 downto slv'length) := (others => '0');
     return slv_new;
+  end function;
+
+  -- function count_trailing_zeroes
+  function count_trailing_zeroes(
+    slv: std_logic_vector)
+    return natural is
+    variable num_of_trailing_zeroes: natural := 0;
+  begin
+    for i in 0 to slv'length-1 loop
+      if or slv(i downto 0) = '0' then
+        num_of_trailing_zeroes := i+1;
+      end if;
+    end loop;
+    return num_of_trailing_zeroes;
+  end function;
+
+  -- function max
+  function max(
+    num1: integer;
+    num2: integer)
+    return integer is
+  begin
+    if num1 > num2 then
+      return num1;
+    end if;
+    return num2;
   end function;
 end package body general_package;

@@ -22,7 +22,8 @@ entity csa_tree is
     SIZE_OF_INPUTS : positive := 4);
   port (
     inputs         : in  slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
-    sum            : out std_logic_vector(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0));
+    cout           : out std_logic;
+    sum            : out std_logic_vector(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0));
 end csa_tree;
 
 -------------------------------------------------------------------------------
@@ -32,90 +33,83 @@ architecture rtl of csa_tree is
   -------------------------------------------------------------------------------- 
   -- constants
   -------------------------------------------------------------------------------- 
-  CONSTANT HEIGHT      : natural := csa_tree_height(NUM_OF_INPUTS);
+  CONSTANT MAX_HEIGHT      : natural := csa_tree_height(NUM_OF_INPUTS);
 
   -------------------------------------------------------------------------------- 
   -- signals
   -------------------------------------------------------------------------------- 
-  signal results      : slvv_vector( HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
-  signal result_couts : slvv_vector( HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
-  signal csa_inputs   : slvv_vector( HEIGHT downto 1 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS-1 downto 0);
-  signal carry_outs   : slvv_vector( HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 - 1)(SIZE_OF_INPUTS-1 downto 0);
-  signal sums         : slvv_vector( HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 + NUM_OF_INPUTS mod 3  - 1)(SIZE_OF_INPUTS-1 downto 0); 
-  signal rca_in       : slv_vector( 0 to 1 )(SIZE_OF_INPUTS+flog2(NUM_OF_INPUTS)-1 downto 0);
-  signal carries      : std_logic_vector( NUM_OF_INPUTS-1 downto 0);
-  signal bit_count    : integer_2vector(HEIGHT downto 0)(0 to NUM_OF_INPUTS) := (others => (others => 0));
-  signal cout         : std_logic;
+  --signal results      : slvv_vector( MAX_HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
+  --signal result_couts : slvv_vector( MAX_HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
+  --signal csa_inputs   : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS-1 downto 0);
+  --signal carry_outs   : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 - 1)(SIZE_OF_INPUTS-1 downto 0);
+  --signal sums         : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 + NUM_OF_INPUTS mod 3  - 1)(SIZE_OF_INPUTS-1 downto 0); 
+  --signal rca_in       : slv_vector( 0 to 1 )(SIZE_OF_INPUTS-1 downto 0);
+  --signal shift_index  : integer_vector(MAX_HEIGHT downto 0) := (others => 0);
+  --signal bit_count    : integer_2vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS) := (others => (others => 0));
+
+  -- CSA signals
+  signal csa_in       : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS-1 downto 0);
+  signal csa_result   : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS   downto 0);
+  signal csa_sum      : slv_vector(MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
+  signal csa_cout     : slv_vector(MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
+  signal leftover_bits: slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(0 downto 0);
+  signal retired_bits : std_logic_vector(0 downto 0);
+
+  -- Full Adder signals
+  signal rca_x_in     : std_logic_vector(SIZE_OF_INPUTS-1 downto 0);
+  signal rca_y_in     : std_logic_vector(SIZE_OF_INPUTS-1 downto 0);
+  signal cout_fa      : std_logic;
+  signal sum_fa       : std_logic_vector(SIZE_OF_INPUTS-1 downto 0);
 begin
   --------------------------------------------------------------------------------
-  -- initialize results vector
+  -- initialize csa tree input
   --------------------------------------------------------------------------------
-  populate_results: process(results, inputs)
-  begin
-    for i in 0 to NUM_OF_INPUTS-1 loop
-      results(HEIGHT)(i)(SIZE_OF_INPUTS-1 downto 0) <= inputs(i);
-    end loop;
-  end process;
-
+  csa_in(csa_in'high) <= inputs(0 to 2);
+  leftover_bits(leftover_bits'high) <= (others => (others => '0'));
 
   --------------------------------------------------------------------------------
-  -- csa generator
+  -- generate csa tree
   --------------------------------------------------------------------------------
-  csa_reduce_generate: for i in HEIGHT downto 1 generate
-    -- Add inputs into CSA tree level
-    csa_input_gen: for j in 0 to csa_inputs(i)'length-1 generate
-      csa_inputs(i)(j)  <= results(i)(j)(csa_inputs(i)(j)'length-1 downto 0);
-    end generate;
-
-    csa1: entity work.csa_tree_level 
-      generic map (
-        NUM_OF_INPUTS   => NUM_OF_INPUTS, 
-        SIZE_OF_INPUTS  => SIZE_OF_INPUTS)
+  csa_tree_gen: for height in MAX_HEIGHT downto 1 generate
+    csa1: entity work.carry_save_adder
+      generic map(
+        SIZE     => SIZE_OF_INPUTS)
       port map (
-        inputs          => csa_inputs(i),
-        carry_outs      => carry_outs(i),
-        sums            => sums(i));
-    
-    -- Separate bits not used in reduction
-    result_cout_gen: for j in 0 to results(i)'length-1 generate
-      result_cout_j_gen: for k in sums(i)(j)'length to results(i)(j)'length-1 generate
-        result_couts(i)(j)(k) <= results(i)(j)(k);
-      end generate;
-    end generate;
-    
-    -- Add all sums into results array for next level
-    dut: entity work.csa_tree_results
-      generic map (
-        SIZE_OF_RESULTS => results(i)(0)'length,
-        NUM_OF_RESULTS  => results(i)'length,
-        SIZE_OF_INPUTS  => sums(i)(0)'length,
-        NUM_OF_SUMS     => sums(i)'length,
-        NUM_OF_COUTS    => carry_outs(i)'length)
-      port map (
-        sums            => sums(i),
-        carry           => carry_outs(i),
-        results_in      => result_couts(i),
-        results_out     => results(i-1));
-  end generate csa_reduce_generate;
+        csa_in   => csa_in(height),
+        csa_sum  => csa_sum(height),
+        csa_cout => csa_cout(height)
+      );
+    csa_result    (height-1) <= ( pad( leftover_bits (height)(1)(0 downto 0) & csa_sum (height), SIZE_OF_INPUTS+1 ), 
+                                  pad( csa_cout      (height)                & "0",              SIZE_OF_INPUTS+1 ),  -- "0" can be replaced with LSB of next input
+                                  pad( inputs        (inputs'high),                              SIZE_OF_INPUTS+1 ) );
+    csa_in        (height-1) <= ( csa_result(height-1)(0)(SIZE_OF_INPUTS-1 downto 0), 
+                                  csa_result(height-1)(1)(SIZE_OF_INPUTS-1 downto 0), 
+                                  csa_result(height-1)(2)(SIZE_OF_INPUTS-1 downto 0) );
+    leftover_bits (height-1) <= ( csa_result(height-1)(0)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS),
+                                  csa_result(height-1)(1)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS),
+                                  csa_result(height-1)(2)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS) ); 
+  end generate csa_tree_gen;
 
+
+  --------------------------------------------------------------------------------
+  -- Ripple Carry Adder Mapping
+  --------------------------------------------------------------------------------
+  rca_x_in     <= csa_result(0)(0)(SIZE_OF_INPUTS downto 1);
+  rca_y_in     <= csa_result(0)(1)(SIZE_OF_INPUTS downto 1);
+  retired_bits (retired_bits'length-1) <= csa_result(0)(0)(0);
   
   --------------------------------------------------------------------------------
   -- last stage Ripple Carry Adder
   --------------------------------------------------------------------------------
-  rca_in_gen: for i in 0 to rca_in'length-1 generate
-    rca_in(i) <= results(0)(i);
-  end generate;
-
   fa1: entity work.n_bit_full_adder
     generic map (
       SIZE => SIZE_OF_INPUTS)
     port map (
-      x    => rca_in(0)(rca_in(0)'length-1 downto rca_in(0)'length-SIZE_OF_INPUTS),
-      y    => rca_in(1)(rca_in(1)'length-1 downto rca_in(0)'length-SIZE_OF_INPUTS),
+      x    => rca_x_in,
+      y    => rca_y_in,
       cin  => '0',
-      cout => cout,
-      sum  => sum(sum'length-1 downto sum'length-SIZE_OF_INPUTS));
+      cout => cout_fa,
+      sum  => sum_fa);
 
-  sum(sum'length-1) <= cout;
-  sum(0) <= rca_in(0)(0);
+  sum <= pad(cout_fa & sum_fa & retired_bits, sum'length);
 end architecture rtl;

@@ -8,13 +8,14 @@ use std.env.finish;
 
 library work;
 use work.sim_io_package.all;
+use work.general_package.all;
 
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
 entity carry_save_adder_tb is
   generic( 
-    N: positive :=4 );
+    SIZE: positive :=4 );
 end entity carry_save_adder_tb;
 
 -------------------------------------------------------------------------------
@@ -29,62 +30,54 @@ architecture behavior of carry_save_adder_tb is
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
-  signal signal_x   : std_logic_vector(N-1 downto 0);
-  signal signal_y   : std_logic_vector(N-1 downto 0);
-  signal signal_cin : std_logic_vector(N-1 downto 0);
-  signal signal_cout: std_logic_vector(N-1 downto 0);
-  signal signal_sum : std_logic_vector(N-1 downto 0);
+  signal signal_csa_in  : slv_vector(0 to 2)(SIZE-1 downto 0);
+  signal signal_csa_sum : std_logic_vector(SIZE-1 downto 0);
+  signal signal_csa_cout: std_logic_vector(SIZE-1 downto 0);
 begin
   -------------------------------------------------------------------------------
   -- dut
   -------------------------------------------------------------------------------
   dut: entity work.carry_save_adder
-  generic map(
-    N     => N)
-  port map (
-    x     => signal_x,
-    y     => signal_y,
-    cin   => signal_cin,
-    cout  => signal_cout,
-    sum   => signal_sum);
+    generic map(
+      SIZE     => SIZE)
+    port map (
+      csa_in   => signal_csa_in,
+      csa_sum  => signal_csa_sum,
+      csa_cout => signal_csa_cout);
 
   -------------------------------------------------------------------------------
   -- stimulus
   -------------------------------------------------------------------------------
   stimulus: process
-    variable x   : std_logic_vector(N-1 downto 0);
-    variable y   : std_logic_vector(N-1 downto 0);
-    variable cin : std_logic_vector(N-1 downto 0);
-    variable sum : std_logic_vector(N-1 downto 0);
-    variable cout: std_logic_vector(N-1 downto 0);
+    variable var_csa_in : slv_vector(0 to 2)(SIZE-1 downto 0);
+    variable var_csa_sum: std_logic_vector(SIZE-1 downto 0);
+    variable var_csa_cout: std_logic_vector(SIZE-1 downto 0);
   begin
     print("** Testing carry_save_adder");
 
     -- Validate all possible input combinations
-    for ii in 0 to N**2-1 loop
-      for jj in 0 to N**2-1 loop
-        for kk in 0 to N**2-1 loop
-          x   := std_logic_vector(to_unsigned(ii, x'length));
-          y   := std_logic_vector(to_unsigned(jj, y'length));
-          cin := std_logic_vector(to_unsigned(kk, cin'length));
+    for ii in 0 to SIZE**2-1 loop
+      for jj in 0 to SIZE**2-1 loop
+        for kk in 0 to SIZE**2-1 loop
+          var_csa_in(0) := std_logic_vector(to_unsigned(ii, SIZE));
+          var_csa_in(1) := std_logic_vector(to_unsigned(jj, SIZE));
+          var_csa_in(2) := std_logic_vector(to_unsigned(kk, SIZE));
 
-          signal_x   <= x;
-          signal_y   <= y;
-          signal_cin <= cin;
+          signal_csa_in <= var_csa_in;
 
           wait for PERIOD;
 
           -- Generate expected sum and cout
-          sum := (x xor y xor cin);
-          cout := (x and y) or (x and cin) or (y and cin);
+          var_csa_sum  := (var_csa_in(0) xor var_csa_in(1) xor var_csa_in(2));
+          var_csa_cout := (var_csa_in(0) and var_csa_in(1)) or (var_csa_in(1) and var_csa_in(2)) or (var_csa_in(0) and var_csa_in(2));
 
           -- Verify sum and cout
-          assert signal_sum  = sum
-            report "Error: Incorrect sum. Actual "& to_string(signal_sum) &". Expected "& to_string(sum)
+          assert signal_csa_sum  = var_csa_sum
+            report "Error: Incorrect sum. Actual "& to_string(signal_csa_sum) &". Expected "& to_string(var_csa_sum)
             severity FAILURE;
 
-          assert signal_cout = cout
-            report "Error: Incorrect carry out. Actual "& to_string(signal_cout) &". Expected "& to_string(cout)
+          assert signal_csa_cout = var_csa_cout
+            report "Error: Incorrect carry out. Actual "& to_string(signal_csa_cout) &". Expected "& to_string(var_csa_cout)
             severity FAILURE;
         end loop;
       end loop;
