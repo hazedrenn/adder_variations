@@ -38,20 +38,11 @@ architecture rtl of csa_tree is
   -------------------------------------------------------------------------------- 
   -- signals
   -------------------------------------------------------------------------------- 
-  --signal results      : slvv_vector( MAX_HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
-  --signal result_couts : slvv_vector( MAX_HEIGHT downto 0 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0) := (others => (others => (others => '0')));
-  --signal csa_inputs   : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS   - 1)(SIZE_OF_INPUTS-1 downto 0);
-  --signal carry_outs   : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 - 1)(SIZE_OF_INPUTS-1 downto 0);
-  --signal sums         : slvv_vector( MAX_HEIGHT downto 1 )(0 to NUM_OF_INPUTS/3 + NUM_OF_INPUTS mod 3  - 1)(SIZE_OF_INPUTS-1 downto 0); 
-  --signal rca_in       : slv_vector( 0 to 1 )(SIZE_OF_INPUTS-1 downto 0);
-  --signal shift_index  : integer_vector(MAX_HEIGHT downto 0) := (others => 0);
-  --signal bit_count    : integer_2vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS) := (others => (others => 0));
-
   -- CSA signals
   signal csa_in       : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS-1 downto 0);
   signal csa_result   : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS   downto 0);
-  signal csa_sum      : slv_vector(MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
-  signal csa_cout     : slv_vector(MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
+  signal csa_sum      : slv_vector (MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
+  signal csa_cout     : slv_vector (MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
   signal leftover_bits: slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(0 downto 0);
   signal retired_bits : std_logic_vector(0 downto 0);
 
@@ -64,13 +55,41 @@ begin
   --------------------------------------------------------------------------------
   -- initialize csa tree input
   --------------------------------------------------------------------------------
-  csa_in(csa_in'high) <= inputs(0 to 2);
-  leftover_bits(leftover_bits'high) <= (others => (others => '0'));
+  csa_in        (MAX_HEIGHT) <= inputs(0 to 2);
+  leftover_bits (MAX_HEIGHT) <= (others => (others => '0'));
+  
+  -- create an array of csa input matrices
+  -- each index of this array is a csa input matrix
+  -- the index number goes from MAX_HEIGHT downto 0, 0 being lowest height and is the result of the csa reduction
 
+  -- create an array of enable matrices
+  -- each index of this array is an enable matrix
+  -- same index logic as csa input matrices
+  -- used to csa reduce without depending on the value of the inputs, since doing so would change hardware logic constantly
+
+  -- initialize csa input matrix array
+  -- initialize enable matrix array. fill all in this matrix with 1's
   --------------------------------------------------------------------------------
   -- generate csa tree
   --------------------------------------------------------------------------------
   csa_tree_gen: for height in MAX_HEIGHT downto 1 generate
+    -- reduce csa input vector using Full Adders and Half Adders
+      -- iterate through each 3x1 space in this csa input vector
+        -- do not touch the space in the bottom-most row if it does not make a 3x1 vector
+        -- reduce the 3x1 vector into a 1x2 vector (diagonal to represent it as a sum, carry)
+          -- if all 3 are enabled, reduce using Full Adder
+          -- if only the top-most 2 are enabled, reduce using Half Adder
+          -- assign the results into a new csa input vector
+          -- update enable matrix for each reduction
+            -- if a reduction was used, add a 1x2 vector diagonal into new enable matrix
+
+        -- when you are done, move all unused bits into new csa input vector
+          -- make EXTRA sure not to assign unused bits into registers that have already been assigned
+            -- you can tell by the new enable matrix if there is already a '1'
+        -- format the inputs so that the bits are at the top-most position in their column
+          -- may make another matrix possibly
+          -- assign, then change the enable bit to that position
+      -- rinse and repeat
     csa1: entity work.carry_save_adder
       generic map(
         SIZE     => SIZE_OF_INPUTS)
@@ -80,22 +99,23 @@ begin
         csa_cout => csa_cout(height)
       );
     csa_result    (height-1) <= ( pad( leftover_bits (height)(1)(0 downto 0) & csa_sum (height), SIZE_OF_INPUTS+1 ), 
-                                  pad( csa_cout      (height)                & "0",              SIZE_OF_INPUTS+1 ),  -- "0" can be replaced with LSB of next input
+                                  pad( csa_cout      (height)                & "0",              SIZE_OF_INPUTS+1 ), 
                                   pad( inputs        (inputs'high),                              SIZE_OF_INPUTS+1 ) );
-    csa_in        (height-1) <= ( csa_result(height-1)(0)(SIZE_OF_INPUTS-1 downto 0), 
-                                  csa_result(height-1)(1)(SIZE_OF_INPUTS-1 downto 0), 
-                                  csa_result(height-1)(2)(SIZE_OF_INPUTS-1 downto 0) );
-    leftover_bits (height-1) <= ( csa_result(height-1)(0)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS),
-                                  csa_result(height-1)(1)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS),
-                                  csa_result(height-1)(2)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS) ); 
-  end generate csa_tree_gen;
 
+    csa_in_gen: for row in 0 to csa_in(height-1)'length-1 generate
+      csa_in        (height-1)(row) <= csa_result(height-1)(row)(SIZE_OF_INPUTS-1 downto 0);
+    end generate;
+
+    leftover_gen: for row in 0 to leftover_bits(height-1)'length-1 generate
+      leftover_bits (height-1)(row) <= csa_result(height-1)(row)(SIZE_OF_INPUTS   downto SIZE_OF_INPUTS);
+    end generate;
+  end generate csa_tree_gen;
 
   --------------------------------------------------------------------------------
   -- Ripple Carry Adder Mapping
   --------------------------------------------------------------------------------
-  rca_x_in     <= csa_result(0)(0)(SIZE_OF_INPUTS downto 1);
   rca_y_in     <= csa_result(0)(1)(SIZE_OF_INPUTS downto 1);
+  rca_x_in     <= csa_result(0)(0)(SIZE_OF_INPUTS downto 1);
   retired_bits (retired_bits'length-1) <= csa_result(0)(0)(0);
   
   --------------------------------------------------------------------------------

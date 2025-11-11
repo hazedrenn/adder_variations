@@ -89,7 +89,7 @@ begin
 
     assert ExpectedSumVar = to_integer(unsigned(signal_sum))
       report "Unexpected Sum, expected " & integer'image(ExpectedSumVar)
-      severity WARNING;
+      severity FAILURE;
 
     print("** csa_tree test PASSED");
     wait for PERIOD;
