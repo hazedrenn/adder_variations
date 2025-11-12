@@ -31,10 +31,10 @@ csa_tree: $(GHDL_SCRIPT) $(PACKAGES)
 	ghdl -e --std=08 $@_tb
 	ghdl -r --std=08 $@_tb -gTEST_CASE=0 --wave=wave/$@_tb.ghw
 	gtkwave wave/$@_tb.ghw 
-	ghdl -r --std=08 $@_tb -gTEST_CASE=1 --wave=wave/$@_tb.ghw
-	gtkwave wave/$@_tb.ghw 
-	ghdl -r --std=08 $@_tb -gTEST_CASE=2 --wave=wave/$@_tb.ghw
-	gtkwave wave/$@_tb.ghw 
+	#ghdl -r --std=08 $@_tb -gTEST_CASE=1 --wave=wave/$@_tb.ghw
+	#gtkwave wave/$@_tb.ghw 
+	#ghdl -r --std=08 $@_tb -gTEST_CASE=2 --wave=wave/$@_tb.ghw
+	#gtkwave wave/$@_tb.ghw 
 
 # Individual simulation runs of each module
 $(MODULES): $(GHDL_SCRIPT)

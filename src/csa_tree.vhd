@@ -39,6 +39,19 @@ architecture rtl of csa_tree is
   -- signals
   -------------------------------------------------------------------------------- 
   -- CSA signals
+  -- create an array of csa input matrices
+  -- each index of this array is a csa input matrix
+  -- the index number goes from MAX_HEIGHT downto 0, 0 being lowest height and is the result of the csa reduction
+  signal csa_input    : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS) + SIZE_OF_INPUTS-1 downto 0);
+  signal new_csa_input    : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS) + SIZE_OF_INPUTS-1 downto 0);
+
+  -- create an array of enable matrices
+  -- each index of this array is an enable matrix
+  -- same index logic as csa input matrices
+  -- used to csa reduce without depending on the value of the inputs, since doing so would change hardware logic constantly
+  signal csa_enable   : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS) + SIZE_OF_INPUTS-1 downto 0);
+  signal new_csa_enable    : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS) + SIZE_OF_INPUTS-1 downto 0);
+
   signal csa_in       : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS-1 downto 0);
   signal csa_result   : slvv_vector(MAX_HEIGHT downto 0)(0 to 2)(SIZE_OF_INPUTS   downto 0);
   signal csa_sum      : slv_vector (MAX_HEIGHT downto 1)(SIZE_OF_INPUTS-1 downto 0);
@@ -58,38 +71,56 @@ begin
   csa_in        (MAX_HEIGHT) <= inputs(0 to 2);
   leftover_bits (MAX_HEIGHT) <= (others => (others => '0'));
   
-  -- create an array of csa input matrices
-  -- each index of this array is a csa input matrix
-  -- the index number goes from MAX_HEIGHT downto 0, 0 being lowest height and is the result of the csa reduction
-
-  -- create an array of enable matrices
-  -- each index of this array is an enable matrix
-  -- same index logic as csa input matrices
-  -- used to csa reduce without depending on the value of the inputs, since doing so would change hardware logic constantly
-
   -- initialize csa input matrix array
+  csa_input_init_gen: for row in 0 to csa_input(MAX_HEIGHT)'length-1 generate
+    csa_input_init_row_gen: for col in inputs(row)'length-1 downto 0 generate
+      csa_input (MAX_HEIGHT)(row)(col) <= inputs(row)(col);
+    end generate csa_input_init_row_gen;
+  end generate csa_input_init_gen;
+
   -- initialize enable matrix array. fill all in this matrix with 1's
+  csa_enable_init_gen: for row in 0 to csa_input(MAX_HEIGHT)'length-1 generate
+    csa_input_init_row_gen: for col in inputs(row)'length-1 downto 0 generate
+      csa_enable (MAX_HEIGHT)(row)(col) <= '1';
+    end generate csa_input_init_row_gen;
+  end generate csa_enable_init_gen;
+
   --------------------------------------------------------------------------------
   -- generate csa tree
   --------------------------------------------------------------------------------
   csa_tree_gen: for height in MAX_HEIGHT downto 1 generate
     -- reduce csa input vector using Full Adders and Half Adders
+    csa_reduce_gen: for row in 0 to (csa_input(height)'length/3)-1 generate
       -- iterate through each 3x1 space in this csa input vector
-        -- do not touch the space in the bottom-most row if it does not make a 3x1 vector
-        -- reduce the 3x1 vector into a 1x2 vector (diagonal to represent it as a sum, carry)
-          -- if all 3 are enabled, reduce using Full Adder
-          -- if only the top-most 2 are enabled, reduce using Half Adder
+      -- do not touch the space in the bottom-most row if it does not make a 3x1 vector
+      -- reduce the 3x1 vector into a 1x2 vector (diagonal to represent it as a sum, carry
+      csa_reduce_row_gen: for col in csa_input(height)(row)'length-2 downto 0 generate
+        -- if all 3 are enabled, reduce using Full Adder
+        fa: entity work.full_adder
+        port map(
+          x    => csa_input(height)(row*3)(col),
+          y    => csa_input(height)(row*3+1)(col),
+          cin  => csa_input(height)(row*3+2)(col),
           -- assign the results into a new csa input vector
-          -- update enable matrix for each reduction
-            -- if a reduction was used, add a 1x2 vector diagonal into new enable matrix
+          sum  => new_csa_input(height)(row*3)(col),
+          cout => new_csa_input(height)(row*3+1)(col+1)
+        );
 
-        -- when you are done, move all unused bits into new csa input vector
-          -- make EXTRA sure not to assign unused bits into registers that have already been assigned
-            -- you can tell by the new enable matrix if there is already a '1'
-        -- format the inputs so that the bits are at the top-most position in their column
-          -- may make another matrix possibly
-          -- assign, then change the enable bit to that position
-      -- rinse and repeat
+        -- update enable matrix for each reduction
+        -- if a reduction was used, add a 1x2 vector diagonal into new enable matrix
+        new_csa_enable(height)(row*3)(col) <= '1';
+        new_csa_enable(height)(row*3+1)(col+1) <= '1';
+      end generate csa_reduce_row_gen;
+
+      -- move all unused bits into new csa input vector
+      -- make EXTRA sure not to assign unused bits into registers that have already been assigned
+      -- you can tell by the new enable matrix if there is already a '1'
+      -- format the inputs so that the bits are at the top-most position in their column
+      -- may make another matrix possibly
+      -- assign, then change the enable bit to that position
+    -- rinse and repeat
+    end generate csa_reduce_gen;
+
     csa1: entity work.carry_save_adder
       generic map(
         SIZE     => SIZE_OF_INPUTS)
