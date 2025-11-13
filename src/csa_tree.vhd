@@ -12,6 +12,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.general_package.all;
+use work.csa_package.all;
 
 -------------------------------------------------------------------------------
 -- entity

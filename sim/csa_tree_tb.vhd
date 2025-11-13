@@ -9,6 +9,7 @@ use std.env.finish;
 library work;
 use work.sim_io_package.all;
 use work.general_package.all;
+use work.csa_package.all;
 
 -------------------------------------------------------------------------------
 -- entity
@@ -36,12 +37,14 @@ architecture behavior of csa_tree_tb is
   -------------------------------------------------------------------------------
   constant NUM_OF_INPUTS  : positive :=  TestSettings(TEST_CASE).NumberOfInputs;
   constant SIZE_OF_INPUTS : positive :=  TestSettings(TEST_CASE).LengthOfInputs;
+  constant MAX_HEIGHT     : natural := csa_tree_height(NUM_OF_INPUTS);
   constant PERIOD         : time := 1 ns;
 
   -------------------------------------------------------------------------------
   -- signals
   -------------------------------------------------------------------------------
   signal signal_inputs    : slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);
+  signal csa_enable       : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS)+SIZE_OF_INPUTS-1 downto 0) := generate_csa_enable(NUM_OF_INPUTS, SIZE_OF_INPUTS, MAX_HEIGHT);
   signal signal_cout      : std_logic;
   signal signal_sum       : std_logic_vector(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0);
 begin
@@ -69,6 +72,13 @@ begin
     print("** Testing csa_tree Test #"& integer'image(TEST_CASE));
     print("Height is "& integer'image(csa_tree_height(NUM_OF_INPUTS)));
     print("Number of inputs is "& integer'image(NUM_OF_INPUTS));
+
+    for h in csa_enable'length-1 downto 0 loop
+      for row in 0 to csa_enable(h)'length-1 loop
+        print(to_string(csa_enable(h)(row)));
+      end loop;
+      print(" ");
+    end loop;
 
     for i in 0 to signal_inputs'length-1 loop
       InputVar          := std_logic_vector(to_unsigned(SIZE_OF_INPUTS**2-1-i, SIZE_OF_INPUTS));

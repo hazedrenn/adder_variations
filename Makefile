@@ -12,7 +12,7 @@ readme: README.md
 
 MODULES												 :=full_adder half_adder carry_look_ahead_adder carry_skip_adder carry_save_adder n_bit_full_adder carry_select_adder csa_tree_level slice csa_tree_results
 GHDL_SCRIPT										 :=scripts/signals.tcl
-PACKAGES											 :=sim/sim_io_package.vhd src/general_package.vhd
+PACKAGES											 :=sim/sim_io_package.vhd src/general_package.vhd src/csa_package.vhd
 full_adder_SOURCES						 :=src/full_adder.vhd
 half_adder_SOURCES						 :=src/half_adder.vhd
 carry_skip_adder_SOURCES			 :=src/full_adder.vhd src/carry_skip_adder.vhd
