@@ -21,7 +21,7 @@ carry_look_ahead_adder_SOURCES :=src/carry_look_ahead_adder.vhd
 n_bit_full_adder_SOURCES			 :=src/full_adder.vhd src/n_bit_full_adder.vhd
 carry_select_adder_SOURCES		 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_select_adder.vhd
 csa_tree_level_SOURCES			   :=src/full_adder.vhd src/carry_save_adder.vhd src/csa_tree_level.vhd
-csa_tree_SOURCES			   			 :=src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_save_adder.vhd src/csa_tree.vhd
+csa_tree_SOURCES			   			 :=src/half_adder.vhd src/full_adder.vhd src/n_bit_full_adder.vhd src/carry_save_adder.vhd src/csa_tree.vhd
 slice_SOURCES			   			     :=src/slice.vhd
 csa_tree_results_SOURCES			 :=src/csa_tree_results.vhd
 
