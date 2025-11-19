@@ -69,7 +69,9 @@ begin
       -- Iterate through each 3x1 space in this CSA input vector
       csa_reduce_row_gen: for col in csa_input(height)(row)'length-2 downto 0 generate
         -- If all 3 are enabled, reduce using Full Adder
-        fa_gen: if csa_enable(height)(row*3)(col) = '1' and csa_enable(height)(row*3+1)(col) = '1' and csa_enable(height)(row*3+2)(col) = '1' generate
+        fa_gen: if csa_enable(height)(row*3)(col)   = '1' and 
+                   csa_enable(height)(row*3+1)(col) = '1' and 
+                   csa_enable(height)(row*3+2)(col) = '1' generate
           fa: entity work.full_adder
           port map(
             x    => csa_input(height)(row*3)(col),
@@ -83,7 +85,8 @@ begin
                              (csa_col(height)(row*3+1)(col))
           );
         -- If only 2 are enabled, reduce using Half Adder
-        elsif csa_enable(height)(row*3)(col) = '1' and csa_enable(height)(row*3+1)(col) = '1' generate
+        elsif csa_enable(height)(row*3)(col)   = '1' and 
+              csa_enable(height)(row*3+1)(col) = '1' generate
           ha: entity work.half_adder
           port map(  
             x    => csa_input(height)(row*3)(col),
