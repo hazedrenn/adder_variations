@@ -73,7 +73,7 @@ begin
   -------------------------------------------------------------------------------
   -- dut
   -------------------------------------------------------------------------------
-  dut: entity work.csa_tree
+  dut: entity work.csa_tree_pipelined
   generic map( 
     NUM_OF_INPUTS  => NUM_OF_INPUTS,
     SIZE_OF_INPUTS => SIZE_OF_INPUTS)
@@ -108,11 +108,13 @@ begin
     print("Number of inputs is "& integer'image(NUM_OF_INPUTS));
     print("Input mode is "& InputModeType'image(INPUT_MODE));
 
+    -- when enabled, displays enable matrix and the reroute coordinated for each csa tree level
     if DEBUG = TRUE then
       for h in csa_enable'length-1 downto 0 loop
         for row in 0 to csa_enable(h)'length-1 loop
-          print(to_string(csa_enable(h)(row)));
+          write(output_line, to_string(csa_enable(h)(row)) & "  ");
         end loop;
+        writeline(output, output_line);
         print(" ");
         for row in 0 to csa_enable(h)'length-1 loop
           for col in csa_enable(h)(row)'length-1 downto 0 loop
@@ -124,6 +126,7 @@ begin
       end loop;
     end if;
 
+    -- generate inputs based on test settings while also generating an expected sum value to verify
     for i in 0 to signal_inputs'length-1 loop
       if INPUT_MODE = INCREMENT then
         InputVar        := std_logic_vector(to_unsigned(i, SIZE_OF_INPUTS));
@@ -140,27 +143,37 @@ begin
     end loop;
 
     signal_inputs <= InputMatrixVar;
-    for i in 0 to 10 loop
+
+    print(" ");
+    print("------------------------------------------------------------");
+    -- print out each pipelined output register
+    for i in 0 to MAX_HEIGHT+2 loop
       wait for PERIOD;
 
-      for j in 0 to csa_output'length-1 loop
+      -- prints current input
+      print("current input");
+      for j in 0 to signal_inputs'length-1 loop
+        print(to_string(signal_inputs(j)));
+      end loop;
+
+      print(lf&"pipeline:");
+      -- prints out all pipelined registers except for sum
+      for j in csa_output'length-1 downto 0 loop
         for k in 0 to csa_output(j)'length-1 loop
-            print(to_string(csa_output(j)(k)));
+            write(output_line, to_string(csa_output(j)(k)) & "  ");
         end loop;
+        writeline(output, output_line);
         print(" ");
       end loop;
-      print("  ----");
 
-      for j in 0 to signal_inputs'length-1 loop
-        print("  "&to_string(signal_inputs(j)));
-      end loop;
+      -- prints sum
+      print(lf&"sum:"); 
+      print(to_string(signal_sum));
 
-      print("  ----");
-      print("sum:" & to_string(signal_sum));
-      print("  ");
-
+      print("------------------------------------------------------------");
     end loop;
 
+    -- verification of sum value
     assert ExpectedSumVar = to_integer(unsigned(signal_sum))
       report "Unexpected Sum, expected " & integer'image(ExpectedSumVar)
       severity warning;

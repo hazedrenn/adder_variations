@@ -38,6 +38,13 @@ package general_package is
     num1: integer;
     num2: integer)
     return integer;
+
+  -- function mux
+  function mux(
+    condition: boolean;
+    num1: integer;
+    num2: integer)
+    return integer;
 end package general_package;
 
 package body general_package is
@@ -107,5 +114,19 @@ package body general_package is
       return num1;
     end if;
     return num2;
+  end function;
+
+  -- function mux
+  function mux(
+    condition: boolean;
+    num1: integer;
+    num2: integer)
+    return integer is
+  begin
+    if condition = TRUE then
+      return num1;
+    else
+      return num2;
+    end if;
   end function;
 end package body general_package;

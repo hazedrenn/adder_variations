@@ -71,14 +71,16 @@ package body csa_package is
   -----------------------------------------------------------------------------
   -- function generate csa enable
   -----------------------------------------------------------------------------
-  function generate_csa_enable (
+  function generate_csa_enable(
     num_of_inputs : natural;
     size_of_inputs: natural;
-    height        : natural) 
+    height        : natural)
     return slvv_vector is 
-    variable csa_enable   : slvv_vector(height downto 0)(0 to num_of_inputs-1)(clog2(num_of_inputs)+size_of_inputs-1 downto 0) := (others => (others => (others => '0')));
-    variable result       : slvv_vector(height downto 0)(0 to num_of_inputs-1)(clog2(num_of_inputs)+size_of_inputs-1 downto 0) := (others => (others => (others => '0')));
-    variable csa_remainder: slvv_vector(height downto 0)(0 to num_of_inputs-1)(clog2(num_of_inputs)+size_of_inputs-1 downto 0) := (others => (others => (others => '0')));
+    constant SUM_LENGTH   : natural := clog2(num_of_inputs)+size_of_inputs;
+    constant MAX_HEIGHT   : natural := csa_tree_height(num_of_inputs);
+    variable csa_enable   : slvv_vector(height downto 0)(0 to num_of_inputs-1)(SUM_LENGTH-1 downto 0) := (others => (others => (others => '0')));
+    variable result       : slvv_vector(height downto 0)(0 to num_of_inputs-1)(SUM_LENGTH-1 downto 0) := (others => (others => (others => '0')));
+    variable csa_remainder: slvv_vector(height downto 0)(0 to num_of_inputs-1)(SUM_LENGTH-1 downto 0) := (others => (others => (others => '0')));
     variable vector3x1    : std_logic_vector(2 downto 0);
     variable bit_count    : natural := 0;
   begin

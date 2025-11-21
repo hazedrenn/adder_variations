@@ -14,10 +14,11 @@ library work;
 use work.general_package.all;
 use work.csa_package.all;
 
+
 -------------------------------------------------------------------------------
 -- entity
 -------------------------------------------------------------------------------
-entity csa_tree is
+entity csa_tree_pipelined is
   generic (
     NUM_OF_INPUTS  : positive := 3;
     SIZE_OF_INPUTS : positive := 4);
@@ -27,12 +28,13 @@ entity csa_tree is
     cout           : out std_logic;
     outputs        : out slvv_vector(csa_tree_height(NUM_OF_INPUTS) downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS)+SIZE_OF_INPUTS-1 downto 0);
     sum            : out std_logic_vector(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0));
-end csa_tree;
+end csa_tree_pipelined;
+
 
 -------------------------------------------------------------------------------
 -- architecture
 -------------------------------------------------------------------------------
-architecture rtl of csa_tree is
+architecture rtl of csa_tree_pipelined is
   -------------------------------------------------------------------------------- 
   -- constants
   -------------------------------------------------------------------------------- 
@@ -55,7 +57,7 @@ begin
   --------------------------------------------------------------------------------
   -- Generate CSA Tree
   --------------------------------------------------------------------------------
-  csa_tree_proc: process(clock) 
+  csa_tree_pipelined_proc: process(clock) 
     variable new_row : natural;
     variable new_col : natural;
     variable sumVar     : std_logic;
@@ -74,6 +76,7 @@ begin
             ena(0)   := csa_enable(height)(row*3)(col);
             ena(1)   := csa_enable(height)(row*3+1)(col);
             ena(2)   := csa_enable(height)(row*3+2)(col);
+
             input(0) := csa_input (height)(row*3)(col);
             input(1) := csa_input (height)(row*3+1)(col);
             input(2) := csa_input (height)(row*3+2)(col);
@@ -82,30 +85,27 @@ begin
               new_row := csa_row(height)(row*3)(col);
               new_col := csa_col(height)(row*3)(col);
               sumVar     := input(0) xor input(1) xor input(2);
-
               csa_input(height-1)(new_row)(new_col) <= sumVar;
 
               new_row := csa_row(height)(row*3+1)(col);
               new_col := csa_col(height)(row*3+1)(col);
-              coutVar    := (input(0) and input(1)) or (input(0) and input(2)) or (input(1) and input(2));
-
+              coutVar := (input(0) and input(1)) or (input(0) and input(2)) or (input(1) and input(2));
               csa_input(height-1)(new_row)(new_col) <= coutVar;
+
             elsif ena = "110" then
               new_row := csa_row(height)(row*3)(col);
               new_col := csa_col(height)(row*3)(col);
-              sumVar     := input(0) xor input(1);
-
+              sumVar  := input(0) xor input(1);
               csa_input(height-1)(new_row)(new_col) <= sumVar;
 
               new_row := csa_row(height)(row*3+1)(col);
               new_col := csa_col(height)(row*3+1)(col);
-              coutVar    := input(0) and input(1);
-
+              coutVar := input(0) and input(1);
               csa_input(height-1)(new_row)(new_col) <= coutVar;
+
             elsif ena = "100" then
               new_row := csa_row(height)(row*3)(col);
               new_col := csa_col(height)(row*3)(col);
-
               csa_input(height-1)(new_row)(new_col) <= input(0);
             end if; 
           end loop; -- col loop
@@ -113,18 +113,19 @@ begin
 
         for row in csa_input(height)'length-(csa_input(height)'length mod 3) to csa_input(height)'length-1 loop
           for col in csa_input(height)(row)'length-2 downto 0 loop
-            ena(0) := csa_enable(height)(row)(col);
+            ena(0)   := csa_enable(height)(row)(col);
             input(0) := csa_input(height)(row)(col);
+
             if ena(0) = '1' then
-              new_row := csa_row(height)(row*3)(col);
-              new_col := csa_col(height)(row*3)(col);
+              new_row := csa_row(height)(row)(col);
+              new_col := csa_col(height)(row)(col);
               csa_input(height-1)(new_row)(new_col) <= input(0);
             end if;
           end loop; -- col loop 2
         end loop; -- row loop 2
       end loop; -- height loop
     end if;
-  end process csa_tree_proc;
+  end process csa_tree_pipelined_proc;
 
   outputs <= csa_input;
 
@@ -142,8 +143,11 @@ begin
       cout => cout_fa,
       sum  => sum_fa);
 
-  -- Final sum result
-  process(clock)
+
+  --------------------------------------------------------------------------------
+  -- Final Sum Result process
+  --------------------------------------------------------------------------------
+  sum_result_proc: process(clock)
   begin
     if rising_edge(clock) then
       sum <= sum_fa;
