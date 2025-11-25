@@ -53,3 +53,4 @@ all: $(MODULES)
 clean:
 	-rm *.cf
 	-rm *.html
+	-rm -rf wave/

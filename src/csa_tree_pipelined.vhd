@@ -60,8 +60,8 @@ begin
   csa_tree_pipelined_proc: process(clock) 
     variable new_row : natural;
     variable new_col : natural;
-    variable sumVar     : std_logic;
-    variable coutVar    : std_logic;
+    variable sumVar  : std_logic;
+    variable coutVar : std_logic;
     variable ena     : std_logic_vector(0 to 2);
     variable input   : std_logic_vector(0 to 2);
   begin
@@ -84,7 +84,7 @@ begin
             if ena = "111" then
               new_row := csa_row(height)(row*3)(col);
               new_col := csa_col(height)(row*3)(col);
-              sumVar     := input(0) xor input(1) xor input(2);
+              sumVar  := input(0) xor input(1) xor input(2);
               csa_input(height-1)(new_row)(new_col) <= sumVar;
 
               new_row := csa_row(height)(row*3+1)(col);

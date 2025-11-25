@@ -68,6 +68,7 @@ architecture behavior of csa_tree_pipelined_tb is
   signal csa_output       : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS)+SIZE_OF_INPUTS-1 downto 0) := generate_csa_enable(NUM_OF_INPUTS, SIZE_OF_INPUTS, MAX_HEIGHT);
   signal signal_cout      : std_logic;
   signal signal_sum       : std_logic_vector(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0);
+  signal expected_sum_p   : integer_3vector(MAX_HEIGHT downto 0);
   signal clock            : std_logic;
 begin
   -------------------------------------------------------------------------------
@@ -84,6 +85,9 @@ begin
     cout           => signal_cout,
     sum            => signal_sum);
 
+  -------------------------------------------------------------------------------
+  -- clock process
+  -------------------------------------------------------------------------------
   clock_proc: process
   begin
     clock <= '1';
@@ -156,8 +160,8 @@ begin
         print(to_string(signal_inputs(j)));
       end loop;
 
-      print(lf&"pipeline:");
       -- prints out all pipelined registers except for sum
+      print(lf&"pipeline:");
       for j in csa_output'length-1 downto 0 loop
         for k in 0 to csa_output(j)'length-1 loop
             write(output_line, to_string(csa_output(j)(k)) & "  ");
