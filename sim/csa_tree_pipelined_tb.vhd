@@ -17,7 +17,7 @@ use work.csa_package.all;
 -- entity
 -------------------------------------------------------------------------------
 entity csa_tree_pipelined_tb is
-  generic ( TEST_CASE : natural := 0 );
+  generic ( TEST_CASE : natural := 10 );
 end entity csa_tree_pipelined_tb;
 
 -------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ architecture behavior of csa_tree_pipelined_tb is
   signal csa_output       : slvv_vector(MAX_HEIGHT downto 0)(0 to NUM_OF_INPUTS-1)(clog2(NUM_OF_INPUTS)+SIZE_OF_INPUTS-1 downto 0) := generate_csa_enable(NUM_OF_INPUTS, SIZE_OF_INPUTS, MAX_HEIGHT);
   signal signal_cout      : std_logic;
   signal signal_sum       : std_logic_vector(SIZE_OF_INPUTS+clog2(NUM_OF_INPUTS)-1 downto 0);
-  signal expected_sum_p   : integer_3vector(MAX_HEIGHT downto 0);
+  signal expected_sum_p   : integer_vector(MAX_HEIGHT+1 downto 0);
   signal clock            : std_logic;
 begin
   -------------------------------------------------------------------------------
@@ -131,28 +131,32 @@ begin
     end if;
 
     -- generate inputs based on test settings while also generating an expected sum value to verify
-    for i in 0 to signal_inputs'length-1 loop
-      if INPUT_MODE = INCREMENT then
-        InputVar        := std_logic_vector(to_unsigned(i, SIZE_OF_INPUTS));
-      elsif INPUT_MODE = RANDOM then
-        uniform(seed1, seed2, RandVar);
-        InputVar        := std_logic_vector(to_unsigned(integer(RandVar * real(SIZE_OF_INPUTS**2-1)), SIZE_OF_INPUTS));
-      elsif INPUT_MODE = DECREMENT then
-        InputVar        := std_logic_vector(to_unsigned(SIZE_OF_INPUTS**2-1-i, SIZE_OF_INPUTS));
-      else -- INPUT_MODE = FILLED then
-        InputVar        := (others => '1');
-      end if;
-      InputMatrixVar(i) := InputVar;
-      ExpectedSumVar    := ExpectedSumVar + to_integer(unsigned(InputVar));
-    end loop;
-
-    signal_inputs <= InputMatrixVar;
 
     print(" ");
     print("------------------------------------------------------------");
     -- print out each pipelined output register
-    for i in 0 to MAX_HEIGHT+2 loop
+    for i in 0 to MAX_HEIGHT+MAX_HEIGHT loop
       wait for PERIOD;
+
+      -- generate input vector and expected sum
+      for num in 0 to signal_inputs'length-1 loop
+        if INPUT_MODE = INCREMENT then
+          InputVar        := std_logic_vector(to_unsigned(num, SIZE_OF_INPUTS));
+        elsif INPUT_MODE = RANDOM then
+          uniform(seed1, seed2, RandVar);
+          InputVar        := std_logic_vector(to_unsigned(integer(RandVar * real(SIZE_OF_INPUTS**2-1)), SIZE_OF_INPUTS));
+        elsif INPUT_MODE = DECREMENT then
+          InputVar        := std_logic_vector(to_unsigned(SIZE_OF_INPUTS**2-1-num, SIZE_OF_INPUTS));
+        else -- INPUT_MODE = FILLED then
+          InputVar        := (others => '1');
+        end if;
+        InputMatrixVar(num) := InputVar;
+        ExpectedSumVar      := ExpectedSumVar + to_integer(unsigned(InputVar));
+      end loop;
+
+      expected_sum_p  <= ExpectedSumVar & expected_sum_p(MAX_HEIGHT+1 downto 1);
+      signal_inputs   <= InputMatrixVar;
+      ExpectedSumVar  := 0;
 
       -- prints current input
       print("current input");
@@ -174,13 +178,15 @@ begin
       print(lf&"sum:"); 
       print(to_string(signal_sum));
 
+      -- verification of sum value
+      if i > MAX_HEIGHT+1 then
+        assert expected_sum_p(0) = to_integer(unsigned(signal_sum))
+          report "Unexpected Sum, expected " & integer'image(expected_sum_p(0))
+          severity warning;
+      end if;
+
       print("------------------------------------------------------------");
     end loop;
-
-    -- verification of sum value
-    assert ExpectedSumVar = to_integer(unsigned(signal_sum))
-      report "Unexpected Sum, expected " & integer'image(ExpectedSumVar)
-      severity warning;
 
     print("** csa_tree test PASSED");
     wait for PERIOD;

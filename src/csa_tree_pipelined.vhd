@@ -20,7 +20,7 @@ use work.csa_package.all;
 -------------------------------------------------------------------------------
 entity csa_tree_pipelined is
   generic (
-    NUM_OF_INPUTS  : positive := 3;
+    NUM_OF_INPUTS  : positive := 8;
     SIZE_OF_INPUTS : positive := 4);
   port (
     clock          : in  std_logic;

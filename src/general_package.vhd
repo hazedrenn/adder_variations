@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.math_real.all;
+use ieee.numeric_std.all;
 
 package general_package is
   -- type slv_vector: 2d std_logic vector

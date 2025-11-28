@@ -19,7 +19,7 @@ use work.csa_package.all;
 -------------------------------------------------------------------------------
 entity csa_tree is
   generic (
-    NUM_OF_INPUTS  : positive := 3;
+    NUM_OF_INPUTS  : positive := 8;
     SIZE_OF_INPUTS : positive := 4);
   port (
     inputs         : in  slv_vector(0 to NUM_OF_INPUTS-1)(SIZE_OF_INPUTS-1 downto 0);

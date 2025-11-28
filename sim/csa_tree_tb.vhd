@@ -17,7 +17,7 @@ use work.csa_package.all;
 -- entity
 -------------------------------------------------------------------------------
 entity csa_tree_tb is
-  generic ( TEST_CASE : natural := 0 );
+  generic ( TEST_CASE : natural := 10 );
 end entity csa_tree_tb;
 
 -------------------------------------------------------------------------------
