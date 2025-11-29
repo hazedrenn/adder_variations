@@ -55,7 +55,7 @@ architecture behavior of csa_tree_pipelined_tb is
   constant SIZE_OF_INPUTS : positive      := TestSettings(TEST_CASE).SizeOfInputs;
   constant INPUT_MODE     : InputModeType := TestSettings(TEST_CASE).InputMode;
   constant MAX_HEIGHT     : natural       := csa_tree_height(NUM_OF_INPUTS);
-  constant DEBUG          : boolean       := FALSE;
+  constant DEBUG          : boolean       := true;
   constant PERIOD         : time          := 1 ns;
 
   -------------------------------------------------------------------------------
@@ -111,15 +111,23 @@ begin
     print("Height is "& integer'image(csa_tree_height(NUM_OF_INPUTS)));
     print("Number of inputs is "& integer'image(NUM_OF_INPUTS));
     print("Input mode is "& InputModeType'image(INPUT_MODE));
+    print(" ");
 
     -- when enabled, displays enable matrix and the reroute coordinated for each csa tree level
     if DEBUG = TRUE then
-      for h in csa_enable'length-1 downto 0 loop
-        for row in 0 to csa_enable(h)'length-1 loop
-          write(output_line, to_string(csa_enable(h)(row)) & "  ");
+      -- prints enable matrix, responsible for enabling csa reductions
+      print("Enable matrix array:");
+      for row in 0 to csa_enable(MAX_HEIGHT)'length-1 loop
+        for height in csa_enable'length-1 downto 0 loop
+          write(output_line, to_string(csa_enable(height)(row)) & " -> ");
         end loop;
         writeline(output, output_line);
-        print(" ");
+      end loop;
+      print(" ");
+
+      -- prints reroute coordinates from one matrix to a new csa reduced matrix
+      print("Route coordinate array:");
+      for h in csa_enable'length-1 downto 0 loop
         for row in 0 to csa_enable(h)'length-1 loop
           for col in csa_enable(h)(row)'length-1 downto 0 loop
             write(output_line, "("&integer'image(csa_row(h)(row)(col))&", "&integer'image(csa_col(h)(row)(col))&") ");
@@ -166,13 +174,13 @@ begin
 
       -- prints out all pipelined registers except for sum
       print(lf&"pipeline:");
-      for j in csa_output'length-1 downto 0 loop
-        for k in 0 to csa_output(j)'length-1 loop
-            write(output_line, to_string(csa_output(j)(k)) & "  ");
+      for row in 0 to csa_output(MAX_HEIGHT)'length-1 loop
+        for height in csa_output'length-1 downto 0 loop
+            write(output_line, to_string(csa_output(height)(row)) & "  >  ");
         end loop;
         writeline(output, output_line);
-        print(" ");
       end loop;
+      print(" ");
 
       -- prints sum
       print(lf&"sum:"); 

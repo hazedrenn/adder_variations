@@ -138,9 +138,10 @@ begin
     print(to_string(signal_sum));
     wait for PERIOD;
 
+    -- Validate Sum
     assert ExpectedSumVar = to_integer(unsigned(signal_sum))
       report "Unexpected Sum, expected " & integer'image(ExpectedSumVar)
-      severity warning;
+      severity failure;
 
     print("** csa_tree test PASSED");
     wait for PERIOD;
